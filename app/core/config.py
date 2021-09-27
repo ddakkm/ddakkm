@@ -28,5 +28,4 @@ class Settings(BaseSettings):
 
 # _env_file=f'{os.getenv("app_env", "./app/env/local")}.env'
 _env_file=f'{os.getenv("app_env", "../env/local")}.env'
-print(_env_file)
 settings = Settings(_env_file=_env_file)

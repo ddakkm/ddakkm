@@ -15,9 +15,6 @@ services:
     image: nginx
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-#    build:
-#      context: ./nginx
-#      dockerfile: ./Dockerfile
     container_name: nginx
     restart: always
     ports:
