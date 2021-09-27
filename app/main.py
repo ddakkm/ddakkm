@@ -1,7 +1,10 @@
-from fastapi import FastAPI
+from fastapi import FastAPI,Depends
 from starlette.middleware.cors import CORSMiddleware
+from sqlalchemy.orm import Session
 
+from app.db.session import SessionLocal
 from app.core.config import settings
+from app.models import Tag
 
 
 app = FastAPI(
@@ -19,6 +22,19 @@ if settings.BACKEND_CORS_ORIGINS:
     )
 
 
+def get_db():
+    try:
+        db = SessionLocal()
+        yield db
+    finally:
+        db.close()
+
+
 @app.get("/")
 def index():
     return "hello"
+
+
+@app.get("/test")
+def test(db: Session = Depends(get_db)):
+    return db.query(Tag).first()
