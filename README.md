@@ -6,7 +6,7 @@
 ### 개괄![img.png](docs/img.png)
 ### 상세
 - EC2 인스턴스 내에 로컬 Database를 설치하여 사용합니다.
-- EC2 인슽턴스 내에 도커 컨테이너로 nginx 서버를 통해 API를 서빙합니다. (FastAPI 접근 포트는 노출하지 않음)
+- EC2 인스턴스 내에 도커 컨테이너로 nginx 서버를 통해 API를 서빙합니다. (FastAPI는 호스트에서 접근할 수 없음)
 - 컨테이너 내에서 FastAPI 서버는 8080 포트를 통해 타 서비스(nginx)와 통신합니다.
 - nginx는 호스트를 통해 오는 80번 요청을 컨테이너 내 8080포트(FastAPI)로 포워딩 합니다. 
 - 상세한 서버 설정은 `./nginx/nginx.conf` 참고
@@ -34,8 +34,8 @@ python3 app/db/init_db.py
 * `env`폴더 내 `local.env` 파일에 지정된 MySQL 데이터베이스 경로에 스키마를 생성합니다.
 
 ### dev 환경 배포
-```bash
-docker-compose -f docker-compose-dev.yml
+```shell
+docker-compose -f docker-compose-dev.yml up --build
 ```
 
 ### prod 환경 배포

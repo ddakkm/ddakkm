@@ -1,4 +1,6 @@
-from fastapi import FastAPI,Depends
+import re
+
+from fastapi import FastAPI, Depends, Request
 from starlette.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
@@ -38,3 +40,10 @@ def index():
 @app.get("/test")
 def test(db: Session = Depends(get_db)):
     return db.query(Tag).first()
+
+
+@app.post('/my-endpoint')
+def my_endpoint(request: Request):
+    ip = request.client.host
+    real_ip = request.headers.raw[2][1]
+    return {"displayed_ip": ip, "x-real-ip": real_ip}

@@ -8,8 +8,6 @@ services:
     container_name: ddakkm_api
     environment:
       app_env: dev
-    depends_on:
-      - nginx
 
   nginx:
     image: nginx
