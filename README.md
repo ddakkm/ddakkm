@@ -24,6 +24,13 @@
   - [SQLAlchemy](https://docs.sqlalchemy.org/en/14/)
   - [Alembic](https://alembic.sqlalchemy.org/en/latest/) // TODO
 
+### Database Structure
+![img.png](docs/ddakkm_erd.png)
+#### 설문조사 관련
+- 설문 내역 관리의 용이성을 위해 설문 응답 내용을 JSON 으로 관리합니다.
+- 다만 통계의 용이성을 생각해 SQL 수준에서 응답을 분류할 수 있는 경우 응답을 직접 기록하는 식으로 구조화 했습니다.
+#### 태그 관련
+- 추후 운영진이 수시로 태그를 빼고-추가 하는 과정을 고려하여 DB 수준에서 관리합니다. 
 
 
 ## Deploy
@@ -51,8 +58,7 @@ curl http://3.34.44.39
 
 
 ## TODO
-#### 1. 데이터 모델링 마무리
-#### 2. API 명세 작성
-#### 3. alembic 셋팅
-#### 4. 코딩
-#### 5. 배포 스크립트를 짜던지 환경변수로 개발/실사용 환경 쉽  구분할수 있게 만들기
+#### 1. API 명세 작성
+#### 2. alembic 셋팅
+#### 3. 코딩
+#### 4. 배포 스크립트를 짜던지 환경변수로 개발/실사용 환경 쉽  구분할수 있게 만들기
