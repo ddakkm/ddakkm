@@ -6,13 +6,14 @@ from fastapi import APIRouter, Depends
 from app.controllers import deps
 from app import crud, schemas
 
+
 router = APIRouter()
 
 
 @router.post("")
-async def create_user(
+async def create_review(
         *,
         db: Session = Depends(deps.get_db),
-        user_in: schemas.UserCreateParams
+        review_in: schemas.ReviewCreateParams
 ) -> Any:
-    return crud.user.create(db, obj_in=user_in)
+    return crud.review.create(db, obj_in=review_in)

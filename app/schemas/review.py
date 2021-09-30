@@ -6,22 +6,25 @@ from app.schemas.survey import SurveyACreate
 
 
 class Images(BaseModel):
-    image1_url: Optional[HttpUrl]
-    image2_url: Optional[HttpUrl]
-    image3_url: Optional[HttpUrl]
-    image4_url: Optional[HttpUrl]
-    image5_url: Optional[HttpUrl]
+    image1_url: str = "http//sample.com/1"
+    image2_url: str = "http//sample.com/2"
+    image3_url: str = "http//sample.com/3"
+    image4_url: str = "http//sample.com/4"
+    image5_url: str = "http//sample.com/5"
 
 
 class ReviewBase(BaseModel):
     writer_id: int
-    survey_id: int
     content: Optional[str] = " asdasd "
     images: Optional[Images]
 
 
-class ReviewCreate(ReviewBase):
+class ReviewCreateParams(ReviewBase):
     survey: SurveyACreate
+
+
+class ReviewCreate(ReviewBase):
+    survey_id: int
 
 
 class ReviewUpdate(ReviewBase):

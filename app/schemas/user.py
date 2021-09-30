@@ -13,7 +13,7 @@ class UserBase(BaseModel):
     join_survey_code: JoinSurveyCode = JoinSurveyCode.NONE
 
 
-class UserCreate(UserBase):
+class UserCreateParams(UserBase):
     pass
 
 

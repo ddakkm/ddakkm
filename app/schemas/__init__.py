@@ -1,3 +1,3 @@
-from .user import UserCreate, UserUpdate
-from .review import ReviewCreate, ReviewUpdate
+from .user import UserCreateParams, UserUpdate
+from .review import ReviewCreateParams, ReviewUpdate, ReviewCreate
 from .survey import SurveyACreate, SurveyAUpdated
