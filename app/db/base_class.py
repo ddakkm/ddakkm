@@ -14,4 +14,4 @@ class Base():
     # CamelCase의 클래스 이름으로부터 snake_case의 테이블 네임 자동 생성
     @declared_attr
     def __tablename__(cls) -> str:
-        return re.sub(r'(?<!^)(?=[A-Z])', '_', cls.__name__).lower()+"s"
+        return re.sub(r'(?<!^)(?=[A-Z])', '_', cls.__name__).lower()

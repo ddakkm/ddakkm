@@ -5,8 +5,8 @@ from app.db.base_class import Base
 
 
 class UserLike(Base):
-    user_id = Column(Integer, ForeignKey("users.id"), primary_key=True, index=True)
-    review_id = Column(Integer, ForeignKey("reviews.id"), primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("user.id"), primary_key=True, index=True)
+    review_id = Column(Integer, ForeignKey("review.id"), primary_key=True, index=True)
 
     # Many to Many relation
     user = relationship('User', back_populates='user_like')

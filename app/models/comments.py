@@ -6,8 +6,8 @@ from app.db.base_class import Base
 
 class Comment(Base):
     id = Column(Integer, primary_key=True, index=True)
-    review_id = Column(Integer, ForeignKey('reviews.id'))
-    writer_id = Column(Integer, ForeignKey('users.id'))
+    review_id = Column(Integer, ForeignKey('review.id'))
+    writer_id = Column(Integer, ForeignKey('user.id'))
     content = Column(String(500), nullable=False, default="")
 
     # Many to One

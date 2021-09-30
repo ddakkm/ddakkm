@@ -5,8 +5,8 @@ from app.db.base_class import Base
 
 
 class ReviewTag(Base):
-    review_id = Column(Integer, ForeignKey("reviews.id"), primary_key=True, index=True)
-    tag_id = Column(Integer, ForeignKey("tags.id"), primary_key=True, index=True)
+    review_id = Column(Integer, ForeignKey("review.id"), primary_key=True, index=True)
+    tag_id = Column(Integer, ForeignKey("tag.id"), primary_key=True, index=True)
 
     # Many to Many relation
     review = relationship('Review', back_populates='review_tag')
