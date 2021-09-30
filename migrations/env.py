@@ -22,6 +22,7 @@ MYSQL_DB = os.environ.get("MYSQL_DB")
 # access to the values within the .ini file in use.
 config = context.config
 
+# alemic.ini 에 SQL 경로가 지정되어있지 않으면, 환경변수에서 SQL 연동 정보 가져와 덮어씌움
 if not config.get_main_option('sqlalchemy.url'):
     config.set_main_option('sqlalchemy.url', f'mysql://{MYSQL_USER}:{MYSQL_PASS}@{MYSQL_HOST}:3306/{MYSQL_DB}?charset=utf8mb4')
 
@@ -33,6 +34,8 @@ fileConfig(config.config_file_name)
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
+
+# alembic이 auto generate 하기 위한 모델 구조에 대한 Metadata 제공
 from app import models
 
 target_metadata = models.Base.metadata
