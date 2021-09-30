@@ -31,14 +31,11 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     is_super = Column(Boolean, default=False)
     is_active = Column(Boolean, default=True)
-    # sns_provider = Column(ENUM(*SNS_PROVIDER), default=SNS_PROVIDER[0])
     sns_provider = Column(Enum(SnsProviderType), default=SnsProviderType.LOCAL)
     email = Column(String(100), unique=True, index=True, nullable=False)
     nickname = Column(String(30), unique=True, nullable=False)
-    # gender = Column(ENUM(*GENDER), default=GENDER[0])
     gender = Column(Enum(Gender), default=Gender.ETC)
     age = Column(Integer, default=1980)
-    # join_survey_code = Column(ENUM(*JOIN_SURVEY_CODE), default=JOIN_SURVEY_CODE[0])
     join_survey_code = Column(Enum(JoinSurveyCode), default=JoinSurveyCode.NONE)
 
     # One to One
