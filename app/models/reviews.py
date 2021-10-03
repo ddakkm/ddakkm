@@ -7,7 +7,7 @@ from app.db.base_class import Base
 
 class Review(Base):
     id = Column(Integer, primary_key=True, index=True)
-    writer_id = Column(Integer, ForeignKey('user.id'))
+    user_id = Column(Integer, ForeignKey('user.id'))
     survey_id = Column(Integer, ForeignKey('survey_a.id'))
     is_delete = Column(Boolean, default=False)
     content = Column(String(3000))
@@ -16,10 +16,10 @@ class Review(Base):
     view_count = Column(Integer, default=0)
 
     # One to One
-    survey = relationship("SurveyA", back_populates="review", join_depth=1, uselist=False)
+    survey = relationship("SurveyA", back_populates="review", join_depth=1, uselist=False, lazy="joined")
 
     # Many to One
-    writer = relationship("User", back_populates="reviews", join_depth=1, uselist=False)
+    user = relationship("User", back_populates="reviews", join_depth=1, uselist=False)
 
     # Many to Many
     user_like = relationship("UserLike", back_populates="review", join_depth=1)

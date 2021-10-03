@@ -44,8 +44,8 @@ class User(Base):
     survey_c = relationship("SurveyC", back_populates="user", uselist=False)
 
     # One to Many
-    reviews = relationship("Review", back_populates="writer", uselist=True)
-    comments = relationship("Comment", back_populates="writer", uselist=True)
+    reviews = relationship("Review", back_populates="user", uselist=True)
+    comments = relationship("Comment", back_populates="user", uselist=True)
 
     # Many to Many
     user_like = relationship("UserLike", back_populates="user", join_depth=1)

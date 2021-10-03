@@ -5,8 +5,8 @@ from app.models.surveys import SurveyA
 from app.schemas.survey import SurveyACreate, SurveyAUpdated
 
 
-class CRUDReview(CRUDBase[SurveyA, SurveyACreate, SurveyAUpdated]):
+class CRUDSurveyA(CRUDBase[SurveyA, SurveyACreate, SurveyAUpdated]):
     pass
 
 
-survey_a = CRUDReview(SurveyA)
+survey_a = CRUDSurveyA(SurveyA)

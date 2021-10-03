@@ -2,7 +2,7 @@ from typing import Optional
 
 from pydantic import BaseModel, HttpUrl
 
-from app.schemas.survey import SurveyACreate
+from app.schemas.survey import SurveyACreate, SurveyA
 
 
 class Images(BaseModel):
@@ -14,18 +14,22 @@ class Images(BaseModel):
 
 
 class ReviewBase(BaseModel):
-    writer_id: int
+    user_id: int
     content: Optional[str] = " asdasd "
     images: Optional[Images]
 
 
-class ReviewCreateParams(ReviewBase):
-    survey: SurveyACreate
-
-
+# 리뷰 작성시 입력해야할 파라미터로 설문양식 A를 포함합니다.
 class ReviewCreate(ReviewBase):
-    survey_id: int
+    survey: SurveyACreate
 
 
 class ReviewUpdate(ReviewBase):
     survey: SurveyACreate
+
+
+class Review(ReviewBase):
+    survey: SurveyA
+
+    class Config:
+        orm_mode = True
