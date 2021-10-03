@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends
 
 from app.controllers import deps
 from app import crud, schemas
-
+from app.utils.user import nicknames
 
 router = APIRouter()
 
@@ -25,3 +25,8 @@ async def get_reviews(
         db: Session = Depends(deps.get_db)
 ) -> Any:
     return crud.review.get_multi(db)
+
+
+@router.get("/test")
+async def test():
+    return nicknames[3865]

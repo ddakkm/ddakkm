@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from app.db.session import SessionLocal
 from app.core.config import settings
 from app.controllers.route import api_router
+from app.utils.user import open_nickname_csv, make_nickname_list, nicknames
 
 app = FastAPI(
     title=settings.PROJECT_NAME, openapi_url="/openapi.json", docs_url="/openapi.admin", redoc_url=None
@@ -24,13 +25,12 @@ if settings.BACKEND_CORS_ORIGINS:
 app.include_router(api_router, prefix=settings.API_V1_STR)
 
 
-def get_db():
-    try:
-        db = SessionLocal()
-        yield db
-    finally:
-        db.close()
-
+@app.on_event("startup")
+def startup_event():
+    global nicknames
+    lines = open_nickname_csv("./app/nickname_csv.csv")
+    make_nickname_list(lines, nicknames)
+    print(nicknames)
 
 @app.get("/")
 def index():
