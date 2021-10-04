@@ -7,13 +7,16 @@ from app.crud.base import CRUDBase
 from app.crud.survey import survey_a
 from app.models.reviews import Review
 from app.schemas.review import ReviewCreate, ReviewUpdate
+from app.schemas.survey import SurveyA
 
 
 class CRUDReview(CRUDBase[Review, ReviewCreate, ReviewUpdate]):
     def create(self, db: Session, *, obj_in: ReviewCreate):
-        print(obj_in)
-        survey_create_schema = obj_in.survey
+        # 리뷰 작성을 위한 요청 바디에 포함되어있는 user_id로 서베이를 등록한다.
+        survey_create_schema = SurveyA(**jsonable_encoder(obj_in.survey), user_id=obj_in.user_id)
         survey_id = survey_a.create(db=db, obj_in=survey_create_schema).id
+
+        # 서베이 등록 후 리뷰 등록
         db_obj = Review(
             user_id=obj_in.user_id,
             survey_id=survey_id,

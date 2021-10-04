@@ -3,7 +3,7 @@ from typing import Union
 
 from pydantic import BaseModel, validator
 
-from app.models.surveys import VaccineType, DATE_FROM
+from app.models.surveys import VaccineType, VaccineRound, DATE_FROM
 
 
 class SurveyAData(BaseModel):
@@ -62,8 +62,8 @@ class SurveyAData(BaseModel):
 
 # 기본 설문 A 베이스 스키마
 class SurveyABase(BaseModel):
-    user_id: int
     vaccine_type: VaccineType = VaccineType.ETC
+    vaccine_round: VaccineRound = VaccineRound.FIRST
     is_crossed: bool = False
     is_pregnant: bool = False
     is_underlying_disease: bool = False
@@ -76,9 +76,11 @@ class SurveyACreate(SurveyABase):
 
 
 class SurveyAUpdated(SurveyABase):
-    pass
+    user_id: int
 
 
 class SurveyA(SurveyABase):
+    user_id: int
+
     class Config:
         orm_mode = True

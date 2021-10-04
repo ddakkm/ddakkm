@@ -3,6 +3,7 @@ from typing import Optional
 from pydantic import BaseModel, HttpUrl
 
 from app.schemas.survey import SurveyACreate, SurveyA
+from app.schemas.user import User
 
 
 class Images(BaseModel):
@@ -30,6 +31,20 @@ class ReviewUpdate(ReviewBase):
 
 class Review(ReviewBase):
     survey: SurveyA
+    user: User
 
     class Config:
         orm_mode = True
+
+
+# Review Model for API Response
+class ReviewResponse(ReviewBase):
+    id: int
+    user_id: int
+    nickname: str
+    vaccine_round: str
+    vaccine_type: str
+    symptom: dict
+    content: str
+    like_count: int
+    comment_count: int

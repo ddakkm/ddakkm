@@ -15,6 +15,12 @@ class VaccineType(str, enum.Enum):
     ETC = "ETC"
 
 
+class VaccineRound(str, enum.Enum):
+    FIRST = "FIRST"
+    SECOND = "SECOND"
+    THIRD = "THIRD"
+
+
 class DATE_FROM(str, enum.Enum):
      ZERO_DAY = "ZERO_DAY"
      TWO_DAY = "TWO_DAY"
@@ -28,6 +34,7 @@ class SurveyA(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey('user.id'))
     vaccine_type = Column(Enum(VaccineType), default=VaccineType.ETC)
+    vaccine_round = Column(Enum(VaccineRound), default=VaccineRound.FIRST)
     is_crossed = Column(Boolean, default=False)
     is_pregnant = Column(Boolean, default=False)
     is_underlying_disease = Column(Boolean, default=False)

@@ -13,9 +13,16 @@ class UserBase(BaseModel):
     join_survey_code: JoinSurveyCode = JoinSurveyCode.NONE
 
 
-class UserCreateParams(UserBase):
+class UserCreate(UserBase):
     pass
 
 
 class UserUpdate(UserBase):
     pass
+
+
+class User(UserBase):
+    nickname: str
+
+    class Config:
+        orm_mode = True

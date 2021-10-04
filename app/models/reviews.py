@@ -19,7 +19,7 @@ class Review(Base):
     survey = relationship("SurveyA", back_populates="review", join_depth=1, uselist=False, lazy="joined")
 
     # Many to One
-    user = relationship("User", back_populates="reviews", join_depth=1, uselist=False)
+    user = relationship("User", back_populates="reviews", join_depth=1, uselist=False, lazy="joined")
 
     # Many to Many
     user_like = relationship("UserLike", back_populates="review", join_depth=1)

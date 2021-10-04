@@ -2,8 +2,7 @@ import enum
 
 from sqlalchemy import Column, Integer, String, Boolean, Enum
 from sqlalchemy.orm import relationship
-# from sqlalchemy.dialects.mysql import ENUM
-
+from sqlalchemy.ext.declarative import declarative_base
 
 from app.db.base_class import Base
 
@@ -50,3 +49,7 @@ class User(Base):
     # Many to Many
     user_like = relationship("UserLike", back_populates="user", join_depth=1)
     user_tag = relationship("UserTag", back_populates="user", join_depth=1)
+
+
+class NicknameCounter(Base):
+    counter = Column(Integer, autoincrement=True, primary_key=True)

@@ -27,10 +27,9 @@ app.include_router(api_router, prefix=settings.API_V1_STR)
 
 @app.on_event("startup")
 def startup_event():
-    global nicknames
     lines = open_nickname_csv("./app/nickname_csv.csv")
     make_nickname_list(lines, nicknames)
-    print(nicknames)
+
 
 @app.get("/")
 def index():

@@ -13,6 +13,6 @@ router = APIRouter()
 async def create_user(
         *,
         db: Session = Depends(deps.get_db),
-        user_in: schemas.UserCreateParams
+        user_in: schemas.UserCreate
 ) -> Any:
     return crud.user.create(db, obj_in=user_in)
