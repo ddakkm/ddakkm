@@ -8,3 +8,7 @@ def get_db() -> Generator:
         yield db
     finally:
         db.close()
+
+
+def get_page_request(page: int = 1):
+    return {"page": page, "size": 10}

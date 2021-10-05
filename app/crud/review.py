@@ -8,6 +8,7 @@ from app.crud.survey import survey_a
 from app.models.reviews import Review
 from app.schemas.review import ReviewCreate, ReviewUpdate
 from app.schemas.survey import SurveyA
+from app.schemas.page_response import paginated_query
 
 
 class CRUDReview(CRUDBase[Review, ReviewCreate, ReviewUpdate]):
@@ -28,10 +29,17 @@ class CRUDReview(CRUDBase[Review, ReviewCreate, ReviewUpdate]):
         db.refresh(db_obj)
         return db_obj
 
-    def get_multi(
-        self, db: Session, *, skip: int = 0, limit: int = 100
-    ) -> List[Review]:
-        return db.query(self.model).offset(skip).limit(limit).all()
+    def get_list_paginated(self, db: Session, page_request: dict) -> List[Review]:
+        query = db.query(self.model)
+
+        page = page_request.get("page", 1)
+        size = page_request.get("size", 10)
+
+        return paginated_query(
+            page_request,
+            query,
+            lambda x: x.order_by(self.model.id.desc()).limit(size).offset((page - 1) * size).all()
+        )
 
 
 review = CRUDReview(Review)

@@ -20,13 +20,16 @@ async def create_review(
 
 
 # @router.get("", response_model=List[schemas.Review])
-@router.get("", response_model=List[schemas.ReviewResponse])
+@router.get("", response_model=schemas.PageResponse)
 async def get_reviews(
         *,
-        db: Session = Depends(deps.get_db)
-) -> Any:
+        db: Session = Depends(deps.get_db),
+        page_request: dict = Depends(deps.get_page_request)
+) -> schemas.PageResponse:
+    query = crud.review.get_list_paginated(db, page_request)
     review_list = [schemas.ReviewResponse(
         id=review.id,
+        images=review.images,
         user_id=review.user_id,
         nickname=review.user.nickname,
         vaccine_round=review.survey.vaccine_round,
@@ -35,5 +38,8 @@ async def get_reviews(
         content=review.content,
         like_count=review.like_count,
         comment_count=0
-    ) for review in crud.review.get_multi(db)]
-    return review_list
+    ) for review in query.get("contents")]
+    return schemas.PageResponse(
+        page_meta=query.get("page_meta"),
+        contents=review_list
+    )
