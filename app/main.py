@@ -1,10 +1,7 @@
-import re
-
-from fastapi import FastAPI, Depends, Request
+import uvicorn
+from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
-from sqlalchemy.orm import Session
 
-from app.db.session import SessionLocal
 from app.core.config import settings
 from app.controllers.route import api_router
 from app.utils.user import open_nickname_csv, make_nickname_list, nicknames
@@ -27,10 +24,18 @@ app.include_router(api_router, prefix=settings.API_V1_STR)
 
 @app.on_event("startup")
 def startup_event():
+    # normal
     lines = open_nickname_csv("./app/nickname_csv.csv")
+
+    # debug
+    # lines = open_nickname_csv("../app/nickname_csv.csv")
     make_nickname_list(lines, nicknames)
 
 
 @app.get("/")
 def index():
     return "hello"
+
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000)

@@ -32,6 +32,7 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     sns_provider = Column(Enum(SnsProviderType), default=SnsProviderType.LOCAL)
     email = Column(String(100), unique=True, index=True, nullable=False)
+    hashed_password = Column(String(100), nullable=False)
     nickname = Column(String(30), unique=True, nullable=False)
     gender = Column(Enum(Gender), default=Gender.ETC)
     age = Column(Integer, default=1980)

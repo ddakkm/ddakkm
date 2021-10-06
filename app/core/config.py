@@ -26,6 +26,9 @@ class Settings(BaseSettings):
     BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = []
 
 
-# _env_file=f'{os.getenv("app_env", "./app/env/local")}.env'
+# debugg
+# _env_file=f'{os.getenv("app_env", "../app/env/local")}.env'
+
+# normal
 _env_file=f'{os.getenv("app_env", "../env/local")}.env'
 settings = Settings(_env_file=_env_file)

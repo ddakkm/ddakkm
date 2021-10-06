@@ -8,14 +8,13 @@ from app.schemas.user import User
 
 class Images(BaseModel):
     image1_url: str = "http//sample.com/1"
-    image2_url: str = "http//sample.com/2"
-    image3_url: str = "http//sample.com/3"
-    image4_url: str = "http//sample.com/4"
-    image5_url: str = "http//sample.com/5"
+    image2_url: Optional[str] = "http//sample.com/2"
+    image3_url: Optional[str] = "http//sample.com/3"
+    image4_url: Optional[str] = "http//sample.com/4"
+    image5_url: Optional[str] = "http//sample.com/5"
 
 
 class ReviewBase(BaseModel):
-    user_id: int
     content: Optional[str] = " asdasd "
     images: Optional[Images]
 
@@ -30,6 +29,7 @@ class ReviewUpdate(ReviewBase):
 
 
 class Review(ReviewBase):
+    user_id: int
     survey: SurveyA
     user: User
 

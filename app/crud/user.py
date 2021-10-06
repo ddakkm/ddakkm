@@ -1,5 +1,8 @@
+from typing import Optional
+
 from sqlalchemy.orm import Session
 
+from app.core.security import get_password_hash, verify_password
 from app.crud.base import CRUDBase
 from app.models.users import User
 from app.schemas.user import UserCreate, UserUpdate
@@ -12,6 +15,7 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
         db_obj = User(
             sns_provider=obj_in.sns_provider,
             email=obj_in.email,
+            hashed_password=get_password_hash(obj_in.password),
             join_survey_code=obj_in.join_survey_code,
             gender=obj_in.gender,
             age=obj_in.age,
@@ -21,6 +25,17 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
         db.commit()
         db.refresh(db_obj)
         return db_obj
+
+    def get_by_email(self, db: Session, *, email: str) -> Optional[User]:
+        return db.query(self.model).filter(self.model.email == email).first()
+
+    def authentication(self, db: Session, *, email: str, password: str) -> Optional[User]:
+        user = self.get_by_email(db, email=email)
+        if not user:
+            return None
+        if not verify_password(password, user.hashed_password):
+            return None
+        return user
 
 
 user = CRUDUser(User)
