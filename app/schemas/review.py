@@ -1,6 +1,6 @@
 from typing import Optional, Union
 
-from pydantic import BaseModel, HttpUrl
+from pydantic import BaseModel
 
 from app.schemas.survey import SurveyACreate, SurveyA
 from app.schemas.user import User
@@ -8,10 +8,10 @@ from app.schemas.user import User
 
 class Images(BaseModel):
     image1_url: str = "http//sample.com/1"
-    image2_url: Optional[str] = "http//sample.com/2"
-    image3_url: Optional[str] = "http//sample.com/3"
-    image4_url: Optional[str] = "http//sample.com/4"
-    image5_url: Optional[str] = "http//sample.com/5"
+    image2_url: Optional[str]
+    image3_url: Optional[str]
+    image4_url: Optional[str]
+    image5_url: Optional[str]
 
 
 class ReviewBase(BaseModel):
