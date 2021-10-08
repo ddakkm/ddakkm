@@ -1,14 +1,16 @@
 from typing import List
 
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from fastapi.encoders import jsonable_encoder
 
+from app import models
 from app.crud.base import CRUDBase
 from app.crud.survey import survey_a
 from app.models.reviews import Review
-from app.schemas.review import ReviewCreate, ReviewUpdate
+from app.schemas.review import ReviewCreate, ReviewUpdate, ReviewParams
 from app.schemas.survey import SurveyA
 from app.schemas.page_response import paginated_query
+from app.utils.user import calculate_birth_year_from_age
 
 
 class CRUDReview(CRUDBase[Review, ReviewCreate, ReviewUpdate]):
@@ -29,8 +31,59 @@ class CRUDReview(CRUDBase[Review, ReviewCreate, ReviewUpdate]):
         db.refresh(db_obj)
         return db_obj
 
-    def get_list_paginated(self, db: Session, page_request: dict) -> List[Review]:
-        query = db.query(self.model)
+    def get_list_paginated(self, db: Session, page_request: dict, filters: ReviewParams) -> List[Review]:
+        if filters.q:
+            filter_query = self.model.content.contains(filters.q)
+        else:
+            filter_query = self.model.id
+
+        if filters.min_age and filters.max_age:
+            min_birth_year = calculate_birth_year_from_age(filters.min_age)
+            max_birth_year = calculate_birth_year_from_age(filters.max_age)
+            filter_age = models.User.age.between(min_birth_year, max_birth_year)
+        else:
+            filter_age = self.model.id
+
+        if filters.gender:
+            filter_gender = models.User.gender == filters.gender
+        else:
+            filter_gender = self.model.id
+
+        if filters.vaccine_type:
+            filter_vaccine_type = models.SurveyA.vaccine_type == filters.vaccine_type
+        else:
+            filter_vaccine_type = self.model.id
+
+        if filters.is_crossed is None:
+            filter_is_crossed = self.model.id
+        elif filters.is_crossed is True:
+            filter_is_crossed = models.SurveyA.is_crossed == True
+        else:
+            filter_is_crossed = models.SurveyA.is_crossed == False
+
+        if filters.round:
+            filter_round = models.SurveyA.vaccine_round == filters.round
+        else:
+            filter_round = self.model.id
+
+        if filters.is_pregnant is None:
+            filter_is_pregnant = self.model.id
+        elif filters.is_pregnant is True:
+            filter_is_pregnant = models.SurveyA.is_pregnant == True
+        else:
+            filter_is_pregnant = models.SurveyA.is_pregnant == False
+
+        if filters.is_underlying_disease is None:
+            filter_is_underlying_disease = self.model.id
+        elif filters.is_underlying_disease is True:
+            filter_is_underlying_disease = models.SurveyA.is_underlying_disease == True
+        else:
+            filter_is_underlying_disease = models.SurveyA.is_underlying_disease == False
+
+        query = db.query(self.model).\
+            filter(filter_query).filter(filter_age).filter(filter_gender).filter(filter_vaccine_type).\
+            filter(filter_is_crossed).filter(filter_round).filter(filter_is_pregnant).filter(filter_is_underlying_disease).\
+            group_by(self.model.id)
 
         page = page_request.get("page", 1)
         size = page_request.get("size", 10)

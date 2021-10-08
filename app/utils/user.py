@@ -1,4 +1,5 @@
 import random
+from datetime import datetime
 from itertools import product
 
 from sqlalchemy.orm import Session
@@ -60,6 +61,12 @@ def nickname_randomizer(db: Session = SessionLocal()):
         db.close()
 
 
+def calculate_birth_year_from_age(age: int) -> int:
+    birth_age = datetime.now().year - age + 1
+    return birth_age
+
+
 # for debugging
 if __name__ == "__main__":
-    print(nickname_randomizer())
+    # print(nickname_randomizer())
+    print(calculate_birth_year_from_age(28))

@@ -2,8 +2,20 @@ from typing import Optional, Union
 
 from pydantic import BaseModel
 
-from app.schemas.survey import SurveyACreate, SurveyA
-from app.schemas.user import User
+from app.schemas.survey import SurveyACreate, SurveyA, VaccineType, VaccineRound
+from app.schemas.user import User, Gender
+
+
+class ReviewParams(BaseModel):
+    q: Optional[str] = None
+    min_age: Optional[int] = None
+    max_age: Optional[int] = None
+    gender: Optional[Gender] = None
+    vaccine_type: Optional[VaccineType] = None
+    is_crossed: Optional[bool] = None
+    round: Optional[VaccineRound] = None
+    is_pregnant: Optional[bool] = None
+    is_underlying_disease: Optional[bool] = None
 
 
 class Images(BaseModel):

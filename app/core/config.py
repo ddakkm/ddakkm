@@ -25,7 +25,8 @@ class Settings(BaseSettings):
     USERS_OPEN_REGISTRATION: bool = False
     BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = []
 
+# normal
+# _env_file=f'{os.getenv("app_env", "../app/env/local")}.env'
 
-_env_file=f'{os.getenv("app_env", "../app/env/local")}.env'
-
+_env_file=f'{os.getenv("app_env", "../env/local")}.env'
 settings = Settings(_env_file=_env_file)
