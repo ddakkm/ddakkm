@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends, BackgroundTasks
 from pydantic import EmailStr
 
+from app.core.config import settings
 from app.controllers import deps
 from app.utils.smpt import email_sender
 from app.utils.review import symtom_randomizer
@@ -37,7 +38,6 @@ async def create_review(
     __자세한 내용은 하단 Schema 버튼을 눌러 참고해주세요.__
     """
     return crud.review.create_by_current_user(db, obj_in=review_in, user_id=current_user.id)
-
 
 @router.get("", response_model=schemas.PageResponse)
 async def get_reviews(
@@ -75,6 +75,22 @@ async def get_reviews(
     )
 
 
+@router.patch("/{review_id}")
+async def edit_review(
+        review_id: int,
+        *,
+        db: Session = Depends(deps.get_db),
+        review_in: schemas.ReviewUpdate,
+        current_user: models.User = Depends(deps.get_current_user)
+) -> Any:
+    """
+    사용자가 게시한 리뷰를 수정합니다. </br>
+    <h1> TODO : 기획 내용에 맞게 설문조사 수정 가능여부 확인 후 반영 </h1>
+    """
+    db_obj = crud.review.get_review(db, id=review_id)
+    return crud.review.update_review(db, db_obj=db_obj, obj_in=review_in, user_id=current_user.id)
+
+
 # TODO : 백그라운드 테스크 celery 로 변경
 @router.post("/{review_id}/report")
 async def report_review(
@@ -83,6 +99,13 @@ async def report_review(
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_user)
 ) -> Any:
+    """
+    리뷰를 신고합니다. 신고 목록을 관리하는 DB를 따로 구현하지 않아, ddakkm@kakao.com 이메일 계정으로 신고 내역이 전달됩니다. </br>
+    review_id: 신고하려는 리뷰 id </br>
+    </br>
+    </br>
+    파라미터로 넘어온 리뷰 id 에 해당하는 리뷰가 존재하지 않는 경우, 404에러를 반환합니다. (성공시 200)
+    """
     subject = f"[ddakkm 리뷰 신고] 게시글 ID {review_id}"
     review_content = crud.review.get_review(db, review_id).content
     text = f"""
@@ -90,4 +113,5 @@ async def report_review(
     신고자_ID: {current_user.id}
     신고자_닉네임: {current_user.nickname}
     """
-    background_task.add_task(email_sender, subject=subject, text=text, to=EmailStr("ddakkm@kakao.com"))
+    background_task.add_task(email_sender, subject=subject, text=text, to=EmailStr(settings.SMTP_USER))
+    return {"mail_subject": subject}
