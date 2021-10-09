@@ -21,8 +21,8 @@ async def create_review(
         current_user: models.User = Depends(deps.get_current_user)
 ) -> Any:
     """
-    리뷰를 생성합니다. \n
-    리뷰에는 항상 A 형식의 설문지가 포함되어야 합니다. \n
+    <h1> 리뷰를 생성합니다. </h1> </br>
+    리뷰에는 항상 A 형식의 설문지가 포함되어야 합니다. </br>
     __*파라미터 설명__
     |파라미터|타입|내용|
     |-----|---|---|
@@ -34,7 +34,7 @@ async def create_review(
     |survey > data|json|설문조사에 대한 응답입니다. [설문 예시](https://www.notion.so/2ee64bf1b8a04e61b4a2bc01f076d686) 를 참고했습니다. </br> "q2_1"은 "q2" 가 1일때는 포함되어서는 안됩니다.|
     </br>
     </br>
-    <h1>TODO: 리뷰 작성시 키워드 설정하는 부분은 기획 확정되면 넣을 예정 </h5> </br>
+    <h2>TODO: 리뷰 작성시 키워드 설정하는 부분은 기획 확정되면 넣을 예정 </h2> </br>
     __자세한 내용은 하단 Schema 버튼을 눌러 참고해주세요.__
     """
     return crud.review.create_by_current_user(db, obj_in=review_in, user_id=current_user.id)
@@ -47,7 +47,7 @@ async def get_reviews(
         filters: dict = Depends(deps.review_params)
 ) -> schemas.PageResponse:
     """
-    메인 페이지를 위해 리뷰 리스트를 불러옵니다. </br>
+    <h1> 메인 페이지를 위해 리뷰 리스트를 불러옵니다. </h1> </br>
     pagination이 구현되어있어, "page_meta"에 페이지 네이션에 대한 정보가 기록되어 옵니다.  </br>
     필터를 적용하였으며, 각 필터값에 해당하는 Query parameter를 안보내면 기본적으로 전체값을 리턴합니다. </br>
     </br>
@@ -84,8 +84,8 @@ async def edit_review(
         current_user: models.User = Depends(deps.get_current_user)
 ) -> Any:
     """
-    사용자가 게시한 리뷰를 수정합니다. </br>
-    <h1> TODO : 기획 내용에 맞게 설문조사 수정 가능여부 확인 후 반영 </h1>
+    <h1> 사용자가 게시한 리뷰를 수정합니다. </h1> </br>
+    <h2> TODO : 기획 내용에 맞게 설문조사 수정 가능여부 확인 후 반영 </h2>
     """
     db_obj = crud.review.get_review(db, id=review_id)
     return crud.review.update_review(db, db_obj=db_obj, obj_in=review_in, user_id=current_user.id)
@@ -100,7 +100,8 @@ async def report_review(
         current_user: models.User = Depends(deps.get_current_user)
 ) -> Any:
     """
-    리뷰를 신고합니다. 신고 목록을 관리하는 DB를 따로 구현하지 않아, ddakkm@kakao.com 이메일 계정으로 신고 내역이 전달됩니다. </br>
+    <h1> 리뷰를 신고합니다. </h1> </br>
+    신고 목록을 관리하는 DB를 따로 구현하지 않아, ddakkm@kakao.com 이메일 계정으로 신고 내역이 전달됩니다. </br>
     review_id: 신고하려는 리뷰 id </br>
     </br>
     </br>
