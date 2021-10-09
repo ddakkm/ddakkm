@@ -1,10 +1,11 @@
-from typing import Any, List
+from typing import Any
 
 from sqlalchemy.orm import Session
-from fastapi import APIRouter, Depends, Request
-from fastapi.encoders import jsonable_encoder
+from fastapi import APIRouter, Depends, BackgroundTasks
+from pydantic import EmailStr
 
 from app.controllers import deps
+from app.utils.smpt import email_sender
 from app.utils.review import symtom_randomizer
 from app import crud, schemas, models
 
@@ -38,7 +39,6 @@ async def create_review(
     return crud.review.create_by_current_user(db, obj_in=review_in, user_id=current_user.id)
 
 
-# @router.get("", response_model=List[schemas.Review])
 @router.get("", response_model=schemas.PageResponse)
 async def get_reviews(
         *,
@@ -73,3 +73,21 @@ async def get_reviews(
         page_meta=query.get("page_meta"),
         contents=review_list
     )
+
+
+# TODO : 백그라운드 테스크 celery 로 변경
+@router.post("/{review_id}/report")
+async def report_review(
+        review_id: int,
+        background_task: BackgroundTasks,
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_user)
+) -> Any:
+    subject = f"[ddakkm 리뷰 신고] 게시글 ID {review_id}"
+    review_content = crud.review.get_review(db, review_id).content
+    text = f"""
+    신고 게시글 내용: {review_content}
+    신고자_ID: {current_user.id}
+    신고자_닉네임: {current_user.nickname}
+    """
+    background_task.add_task(email_sender, subject=subject, text=text, to=EmailStr("ddakkm@kakao.com"))

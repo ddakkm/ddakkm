@@ -19,11 +19,14 @@ class Settings(BaseSettings):
     MYSQL_DB: str
     EMAIL_RESET_TOKEN_EXPIRE_HOURS: int = 48
     EMAIL_TEMPLATES_DIR: str = "/app/app/email-templates/build"
-    EMAIL_TEST_USER: str = "test@example.com"  # type: ignore
     FIRST_SUPERUSER: str
     FIRST_SUPERUSER_PASSWORD: str
     USERS_OPEN_REGISTRATION: bool = False
     BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = []
+    SMTP_SERVER: str
+    SMTP_PORT: int
+    SMTP_USER: str
+    SMTP_PASSWORD: str
 
 # normal
 # _env_file=f'{os.getenv("app_env", "../app/env/local")}.env'

@@ -2,6 +2,7 @@ from typing import List
 
 from sqlalchemy.orm import Session, joinedload
 from fastapi.encoders import jsonable_encoder
+from fastapi import HTTPException
 
 from app import models
 from app.crud.base import CRUDBase
@@ -93,6 +94,12 @@ class CRUDReview(CRUDBase[Review, ReviewCreate, ReviewUpdate]):
             query,
             lambda x: x.order_by(self.model.id.desc()).limit(size).offset((page - 1) * size).all()
         )
+
+    def get_review(self, db: Session, id: int) -> str:
+        review = db.query(self.model).filter(self.model.id == id).first()
+        if review is None:
+            raise HTTPException(404, "Review Not Found")
+        return review
 
 
 review = CRUDReview(Review)
