@@ -1,6 +1,6 @@
 from typing import List
 
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session
 from fastapi.encoders import jsonable_encoder
 from fastapi import HTTPException
 
@@ -8,6 +8,7 @@ from app import models
 from app.crud.base import CRUDBase
 from app.crud.survey import survey_a
 from app.models.reviews import Review
+from app.models.users import User
 from app.schemas.review import ReviewCreate, ReviewUpdate, ReviewParams
 from app.schemas.survey import SurveyA
 from app.schemas.page_response import paginated_query
@@ -83,7 +84,8 @@ class CRUDReview(CRUDBase[Review, ReviewCreate, ReviewUpdate]):
 
         query = db.query(self.model).\
             filter(filter_query).filter(filter_age).filter(filter_gender).filter(filter_vaccine_type).\
-            filter(filter_is_crossed).filter(filter_round).filter(filter_is_pregnant).filter(filter_is_underlying_disease).\
+            filter(filter_is_crossed).filter(filter_round).filter(filter_is_pregnant).\
+            filter(filter_is_underlying_disease).filter(self.model.is_delete == False).\
             group_by(self.model.id)
 
         page = page_request.get("page", 1)
@@ -96,13 +98,14 @@ class CRUDReview(CRUDBase[Review, ReviewCreate, ReviewUpdate]):
         )
 
     def get_review(self, db: Session, id: int) -> str:
-        review = db.query(self.model).filter(self.model.id == id).first()
-        if review is None:
+        review_obj = db.query(self.model).filter(self.model.id == id).first()
+        if review_obj is None:
             raise HTTPException(404, "리뷰를 찾을 수 없습니다.")
-        return review
+        return review_obj
 
-    def update_review(self, db: Session, *, db_obj: Review, obj_in: ReviewUpdate, user_id: int) -> Review:
-        if db_obj.user.id != user_id:
+    @staticmethod
+    def update_review(db: Session, *, db_obj: Review, obj_in: ReviewUpdate, current_user: User) -> Review:
+        if db_obj.user_id != current_user.id:
             raise HTTPException(401, "이 게시글을 수정할 권한이 없습니다.")
         obj_data = jsonable_encoder(db_obj)
         if isinstance(obj_in, dict):
@@ -116,5 +119,18 @@ class CRUDReview(CRUDBase[Review, ReviewCreate, ReviewUpdate]):
         db.commit()
         db.refresh(db_obj)
         return db_obj
+
+    @staticmethod
+    def set_review_status_as_deleted(db: Session, *, db_obj: Review, current_user: User) -> Review:
+        print(db_obj.user_id, "///////", current_user.id)
+        if current_user.is_super is True or db_obj.user_id == current_user.id:
+            db_obj.is_delete = True
+            db.add(db_obj)
+            db.commit()
+            db.refresh(db_obj)
+            return db_obj
+        else:
+            raise HTTPException(401, "이 게시글을 수정할 권한이 없습니다.")
+
 
 review = CRUDReview(Review)
