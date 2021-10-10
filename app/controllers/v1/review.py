@@ -141,4 +141,28 @@ async def create_comment(
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_user)
 ):
+    """
+    <h1> 리뷰에 코멘트를 추가합니다. </h1> </br>
+    </br>
+    댓글 내용은 {"content": "댓글 내용"} <- 형식의 json Body로 받고,  </br>
+    글을 작성하고자 하는 review_id 를 Path Parameter 로 받습니다.
+    """
     return crud.comment.create_by_current_user(db, obj_in=comment_in, current_user=current_user, review_id=review_id)
+
+
+# @router.post("/{review_id}}/comment/{comment_id}")
+# async def create_nested_comment(
+#         review_id: int,
+#         comment_id: int,
+#         comment_in: schemas.CommentCreate,
+#         db: Session = Depends(deps.get_db),
+#         current_user: models.User = Depends(deps.get_current_user)
+# ):
+#     """
+#     <h1> 코멘트에 코멘트를 추가합니다. (대댓글) </h1> </br>
+#     </br>
+#     댓글 내용은 {"content": "댓글 내용"} <- 형식의 json Body로 받고,  </br>
+#     글을 작성하고자 하는 review_id 와 대댓글의 comment_id 를 Path Parameter 로 받습니다.
+#     """
+#     return crud.comment.create_nested_comment(
+#         db, obj_in=comment_in, current_user=current_user, review_id=review_id, comment_id=comment_id)
