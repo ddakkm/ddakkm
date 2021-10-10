@@ -131,7 +131,7 @@ async def report_review(
     신고자_닉네임: {current_user.nickname}
     """
     background_task.add_task(email_sender, subject=subject, text=text, to=EmailStr(settings.SMTP_USER))
-    return {"mail_subject": subject}
+    return {"mail_subject": subject, "status": "이메일 처리 작업이 Background Worker 에게 정상적으로 전달되었습니다."}
 
 
 @router.post("/{review_id}}/comment")
@@ -148,21 +148,3 @@ async def create_comment(
     글을 작성하고자 하는 review_id 를 Path Parameter 로 받습니다.
     """
     return crud.comment.create_by_current_user(db, obj_in=comment_in, current_user=current_user, review_id=review_id)
-
-
-# @router.post("/{review_id}}/comment/{comment_id}")
-# async def create_nested_comment(
-#         review_id: int,
-#         comment_id: int,
-#         comment_in: schemas.CommentCreate,
-#         db: Session = Depends(deps.get_db),
-#         current_user: models.User = Depends(deps.get_current_user)
-# ):
-#     """
-#     <h1> 코멘트에 코멘트를 추가합니다. (대댓글) </h1> </br>
-#     </br>
-#     댓글 내용은 {"content": "댓글 내용"} <- 형식의 json Body로 받고,  </br>
-#     글을 작성하고자 하는 review_id 와 대댓글의 comment_id 를 Path Parameter 로 받습니다.
-#     """
-#     return crud.comment.create_nested_comment(
-#         db, obj_in=comment_in, current_user=current_user, review_id=review_id, comment_id=comment_id)
