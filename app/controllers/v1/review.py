@@ -1,7 +1,8 @@
-from typing import Any
+from typing import Any, Union, Optional
 
+from jose import jwt
 from sqlalchemy.orm import Session
-from fastapi import APIRouter, Depends, BackgroundTasks
+from fastapi import APIRouter, Depends, BackgroundTasks, Header
 from pydantic import EmailStr
 
 from app.core.config import settings
@@ -45,18 +46,29 @@ async def get_reviews(
         *,
         db: Session = Depends(deps.get_db),
         page_request: dict = Depends(deps.get_page_request),
-        filters: dict = Depends(deps.review_params)
+        filters: dict = Depends(deps.review_params),
+        current_user: Union[models.User, None] = Depends(deps.get_current_user_optional)
 ) -> schemas.PageResponse:
     """
     <h1> 메인 페이지를 위해 리뷰 리스트를 불러옵니다. </h1> </br>
     pagination이 구현되어있어, "page_meta"에 페이지 네이션에 대한 정보가 기록되어 옵니다.  </br>
     필터를 적용하였으며, 각 필터값에 해당하는 Query parameter를 안보내면 기본적으로 전체값을 리턴합니다. </br>
+    로그인 한 유저 (Reqeust Header > Authorization에 Access Token을 넣어 요청하는 경우)는 "user_is_like"
+    파라미터를 통해 내가 좋아요 한 리뷰인지의 여부를 알 수 있습니다. </br>
     </br>
     __*예시__ </br>
     /v1/review -> 검색이나 필터링 없이 전체 리뷰 반환 </br>
     /v1/review?q=아파요 -> "아파요" 라는 본문 내용을 포함하는 전체 리뷰 반환 </br>
     /v1/review?q=아파요&is_crossed=false -> "아파요" 라는 본문 내용을 포함하며 교차접종이 아닌 전체 리뷰 반환
     """
+    # 로그인 상태면 현재 유저의 좋아요 기록 불러오기 / 로그인 상태가 아니면 좋아요 기록은 비어있음
+    try:
+        user_like_list = crud.user_like.get_like_review_list_by_current_user(db, current_user)
+    except AttributeError as e:
+        print(e)
+        user_like_list = []
+
+    print(user_like_list)
     query = crud.review.get_list_paginated(db, page_request, filters)
     review_list = [schemas.ReviewResponse(
         id=review.id,
@@ -68,7 +80,8 @@ async def get_reviews(
         symptom=symtom_randomizer(review.survey.data),
         content=review.content,
         like_count=review.like_count,
-        comment_count=len(review.comments)
+        comment_count=len(review.comments),
+        user_is_like=review.id in user_like_list
     ) for review in query.get("contents")]
     return schemas.PageResponse(
         page_meta=query.get("page_meta"),
@@ -114,7 +127,7 @@ async def report_review(
         background_task: BackgroundTasks,
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_user)
-) -> Any:
+) -> dict:
     """
     <h1> 리뷰를 신고합니다. </h1> </br>
     신고 목록을 관리하는 DB를 따로 구현하지 않아, ddakkm@kakao.com 이메일 계정으로 신고 내역이 전달됩니다. </br>
@@ -140,7 +153,7 @@ async def create_comment(
         comment_in: schemas.CommentCreate,
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_user)
-):
+) -> models.Comment:
     """
     <h1> 리뷰에 코멘트를 추가합니다. </h1> </br>
     </br>
@@ -148,3 +161,21 @@ async def create_comment(
     글을 작성하고자 하는 review_id 를 Path Parameter 로 받습니다.
     """
     return crud.comment.create_by_current_user(db, obj_in=comment_in, current_user=current_user, review_id=review_id)
+
+
+@router.post("/{review_id}/like_status")
+async def change_review_like_status(
+        review_id: int,
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_user)
+) -> Union[models.UserLike, dict]:
+    """
+    <h1> 게시글에 대한 좋아요 상태를 변경합니다. </h1> </br>
+    성공시 200 을 반환합니다. </br>
+    잘못된 Path Parameter로 요청할 경우 (= 없는 리뷰의 id로 요청할 경우) 404 에러를 반환합니다. </br>
+    좋아요를 한 회원이 본 API 를 호출하면, 좋아요가 취소됩니다. -> {"status": "ok", "details": "취소에 대한 상세 내역"} 형태의 json을 반환합니다. </br>
+    좋아요를 하지 않은 회원이 본 API 를 호출하면, 리뷰에 대한 좋아요가 등록됩니다. -> 생성된 모델을 반환 </br>
+    </br>
+    <h2>_PS. 빠르게 만들기 위해 하나의 API로 좋아요/좋아요 취소를 모두 처리하도록 했습니다. 혹시 클라에서 분기가 불편해지거나 하면 말해주세요 그냥 2개로 나눌께요_</h2>
+    """
+    return crud.user_like.change_user_like_review_status(db, current_user=current_user, review_id=review_id)

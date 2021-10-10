@@ -60,3 +60,4 @@ class ReviewResponse(ReviewBase):
     content: str
     like_count: int
     comment_count: int
+    user_is_like: bool

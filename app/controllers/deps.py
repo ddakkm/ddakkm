@@ -1,8 +1,8 @@
-from typing import Generator, Optional
+from typing import Generator, Optional, Union
 
 from sqlalchemy.orm import Session
 from pydantic import ValidationError
-from fastapi import Depends, HTTPException, status, Query
+from fastapi import Depends, HTTPException, status, Query, Header
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt
 
@@ -13,6 +13,7 @@ from app.db.session import SessionLocal
 from app.schemas.review import ReviewParams
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{settings.API_V1_STR}/auth/login/local")
+oauth2_scheme_optional = OAuth2PasswordBearer(tokenUrl=f"{settings.API_V1_STR}/auth/login/local", auto_error=False)
 
 
 def review_params(q: Optional[str] = Query(None, description="검색용 쿼리, string"),
@@ -49,11 +50,33 @@ def get_current_user(
         print(e)
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Could not validate credentials"
+            detail="유효하지 않은 토큰 입니다."
         )
     user = crud.user.get(db, id=token_data.sub)
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail="없는 회원입니다.")
+    return user
+
+
+def get_current_user_optional(
+        db: Session = Depends(get_db), token: Optional[str] = Depends(oauth2_scheme_optional)
+) -> Union[models.User, None]:
+    """
+    Access Token 없으면 Current User를 None 으로 반환함
+    """
+    if token is None:
+        token = ""
+    try:
+        payload = jwt.decode(
+            token, settings.SECRET_KEY, algorithms=[security.ALGORITHM]
+        )
+        token_data = schemas.TokenPayload(**payload)
+    except (jwt.JWTError, ValidationError) as e:
+        return None
+
+    user = crud.user.get(db, id=token_data.sub)
+    if not user:
+        return None
     return user
 
 

@@ -25,5 +25,5 @@ class Review(Base):
     user = relationship("User", back_populates="reviews", join_depth=1, uselist=False, lazy="joined")
 
     # Many to Many
-    user_like = relationship("UserLike", back_populates="review", join_depth=1)
+    user_like = relationship("UserLike", back_populates="review", join_depth=1, uselist=True, lazy="joined")
     review_tag = relationship("ReviewTag", back_populates="review", join_depth=1)
