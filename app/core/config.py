@@ -28,8 +28,9 @@ class Settings(BaseSettings):
     SMTP_USER: str
     SMTP_PASSWORD: str
 
-# normal
+# debug
 # _env_file=f'{os.getenv("app_env", "../app/env/local")}.env'
 
+# normal
 _env_file=f'{os.getenv("app_env", "../env/local")}.env'
 settings = Settings(_env_file=_env_file)

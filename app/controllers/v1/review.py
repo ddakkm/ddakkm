@@ -68,7 +68,7 @@ async def get_reviews(
         symptom=symtom_randomizer(review.survey.data),
         content=review.content,
         like_count=review.like_count,
-        comment_count=0
+        comment_count=len(review.comments)
     ) for review in query.get("contents")]
     return schemas.PageResponse(
         page_meta=query.get("page_meta"),
@@ -79,9 +79,8 @@ async def get_reviews(
 @router.patch("/{review_id}")
 async def edit_review(
         review_id: int,
-        *,
-        db: Session = Depends(deps.get_db),
         review_in: schemas.ReviewUpdate,
+        db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_user)
 ) -> models.Review:
     """
@@ -96,7 +95,6 @@ async def edit_review(
 @router.delete("/{review_id}")
 async def delete_review(
         review_id: int,
-        *,
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_user)
 ) -> models.Review:
@@ -134,3 +132,13 @@ async def report_review(
     """
     background_task.add_task(email_sender, subject=subject, text=text, to=EmailStr(settings.SMTP_USER))
     return {"mail_subject": subject}
+
+
+@router.post("/{review_id}}/comment")
+async def create_comment(
+        review_id: int,
+        comment_in: schemas.CommentCreate,
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_user)
+):
+    return crud.comment.create_by_current_user(db, obj_in=comment_in, current_user=current_user, review_id=review_id)

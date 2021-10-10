@@ -122,7 +122,6 @@ class CRUDReview(CRUDBase[Review, ReviewCreate, ReviewUpdate]):
 
     @staticmethod
     def set_review_status_as_deleted(db: Session, *, db_obj: Review, current_user: User) -> Review:
-        print(db_obj.user_id, "///////", current_user.id)
         if current_user.is_super is True or db_obj.user_id == current_user.id:
             db_obj.is_delete = True
             db.add(db_obj)

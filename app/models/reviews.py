@@ -18,6 +18,9 @@ class Review(Base):
     # One to One
     survey = relationship("SurveyA", back_populates="review", join_depth=1, uselist=False, lazy="joined")
 
+    # One to Many
+    comments = relationship("Comment", back_populates="review", join_depth=1, uselist=True, lazy="joined")
+
     # Many to One
     user = relationship("User", back_populates="reviews", join_depth=1, uselist=False, lazy="joined")
 
