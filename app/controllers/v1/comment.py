@@ -30,5 +30,10 @@ async def delete_comment(
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_user)
 ):
+    """
+    <h1> 코멘트를 삭제합니다. </h1> </br>
+    </br>
+    Path Parameter 로 입력된 코멘트가 없는 경우 404 에러를 반환합니다.
+    """
     db_obj = crud.comment.get_comment(db, comment_id)
     return crud.comment.set_comment_status_as_deleted(db, db_obj=db_obj, current_user=current_user)

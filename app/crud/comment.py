@@ -1,8 +1,6 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
-from fastapi.encoders import jsonable_encoder
 
-from app import crud
 from app.crud.base import CRUDBase
 from app.models.users import User
 from app.models.comments import Comment
