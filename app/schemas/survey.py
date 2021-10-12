@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import Union, Optional, List
 
 from pydantic import BaseModel, validator
@@ -17,11 +18,11 @@ class SurveyAData(BaseModel):
     # 1번 질문 > 1~6번 답변 혹은 string
     @validator("q1")
     def limit_q1_range(cls, v):
-        if len(v) > 7:
+        if len(v) > 8:
             raise ValueError("Out of Range")
         for value in v:
             if isinstance(value, str) is False:
-                if value not in range(1, 7):
+                if value not in range(1, 8):
                     raise ValueError("Out Of Range")
         return v
 
@@ -94,3 +95,85 @@ class SurveyA(SurveyABase):
 
     class Config:
         orm_mode = True
+
+
+class SurveyBBase(BaseModel):
+    pass
+
+
+class SurveyBCreate(SurveyBBase):
+    pass
+
+
+class SurveyCBase(BaseModel):
+    pass
+
+
+class SurveyCCreate(SurveyBBase):
+    pass
+
+
+class SurveyType(str, Enum):
+    A = "A"
+    B = "B"
+    C = "C"
+
+
+class SurveyCreate(BaseModel):
+    survey_type: SurveyType = SurveyType.A
+    survey_details: dict
+
+
+survey_details_example = {
+            "A": {
+                "summary": "A 타입 설문지 예시",
+                "description": "A 타입 설문지 예시",
+                "value": {
+                    "content": "복통이 심했어요",
+                    "images": {
+                        "image1_url": "http://sample.com/1",
+                        "image2_url": "string",
+                        "image3_url": "string",
+                        "image4_url": None,
+                        "image5_url": None
+                        },
+                    "survey": {
+                        "survey_type": "A",
+                        "survey_details": {
+                          "vaccine_type": "ETC",
+                          "vaccine_round": "FIRST",
+                          "is_crossed": False,
+                          "is_pregnant": False,
+                          "is_underlying_disease": False,
+                          "date_from": "ZERO_DAY",
+                          "data": {
+                            "q1": [
+                              1, 2, "콧등 근육쪽에 심한 근육통이 있었습니다."
+                            ],
+                            "q2": 2,
+                            "q2_1": 2,
+                            "q3": 1,
+                            "q4": [
+                              1
+                            ],
+                            "q5": 1
+                          }
+                        },
+                    }
+                }
+            },
+            "B": {
+                "summary": "B 타입 설문지 예시",
+                "description": "B 타입 설문지 예시",
+                "value": {
+                    "TODO": "TODO"
+                },
+            },
+            "C": {
+                "summary": "C 타입 설문지 예시",
+                "description": "C 타입 설문지 예시",
+                "value": {
+                    "TODO": "TODO"
+                },
+            }
+}

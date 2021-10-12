@@ -2,7 +2,7 @@ from typing import Any, Union, Optional
 
 from jose import jwt
 from sqlalchemy.orm import Session
-from fastapi import APIRouter, Depends, BackgroundTasks, Header
+from fastapi import APIRouter, Depends, BackgroundTasks, Body
 from pydantic import EmailStr
 
 from app.core.config import settings
@@ -18,7 +18,7 @@ router = APIRouter()
 async def create_review(
         *,
         db: Session = Depends(deps.get_db),
-        review_in: schemas.ReviewCreate,
+        review_in: schemas.ReviewCreate = Body(None, examples=schemas.survey_details_example),
         current_user: models.User = Depends(deps.get_current_user)
 ) -> Any:
     """
@@ -29,10 +29,14 @@ async def create_review(
     |-----|---|---|
     |images|json|이미지 url을 json 형식으로 받습니다. 본 파라미터는 Optional 파라미터로, 첨부 이미지가 없는 경우 필수값이 아닙니다. </br> 이미지가 있다면 최소 한개 이미지의 url은 보내야 합니다.|
     |survey|json|백신 후기 설문의 상세 내용을 받습니다.|
-    |survey > vaccine_type|enum(string)|"ETC" , "PFIZER", "AZ", "MODERNA", "JANSSEN"|
-    |survey > vaccine_round|enum(string)|"FIRST", "SECOND", "THIRD"|
-    |survey > date_from|enum(string)| 백신을 맞은지 얼마나 지났는가에 대한 데이터로 "ZERO_DAY", "TWO_DAY", "THREE_DAY", "OVER_FIVE", "OVER_WEEK", "OVER_MONTH" 의 값을 받습니다.|
-    |survey > data|json|설문조사에 대한 응답입니다. [설문 예시](https://www.notion.so/2ee64bf1b8a04e61b4a2bc01f076d686) 를 참고했습니다. </br> "q2_1"은 "q2" 가 1일때는 포함되어서는 안됩니다.|
+    |survey > survey_type|enum(string)|"A", "B", "C"|
+    |survey_details > vaccine_type|enum(string)|"ETC" , "PFIZER", "AZ", "MODERNA", "JANSSEN"|
+    |survey_details > vaccine_round|enum(string)|"FIRST", "SECOND", "THIRD"|
+    |survey_details > date_from|enum(string)| 백신을 맞은지 얼마나 지났는가에 대한 데이터로 "ZERO_DAY", "TWO_DAY", "THREE_DAY", "OVER_FIVE", "OVER_WEEK", "OVER_MONTH" 의 값을 받습니다.|
+    |survey_details > data > q1| 1~7 범위의 정수 + 문자열의 배열| 근육통에 대한 설문입니다. (피그마 설문A그룹참조) </br> 1~7 범위를 벗어난 정수가 배열에 있거나, 8개 이상의 인자가 배열에 있을 경우 에러를 반환합니다.|
+    |survey_details > data > q2| 1~6 범위의 정수 | 발열에 대한 설문입니다. 여기서 1번을 택한 경우 발열 증상이 없다는 뜻이기 떄문에, </br> 발열 증상의 지속 기간에 대해 묻는 "q2_1" 은 빈 값을 줘야 합니다. 그렇지 않으면 에러를 반환합니다.|
+    |survey_details > data > q2_1| 1~4 범위의 정수 | 발열 증상의 지속 기간에 대한 설문입니다. </br> "q2" 에서 1을 입력한 경우 이 파라미터는 비어있어야 합니다.|
+    |survey_details > data > q3~q5 |TODO|TODO|
     </br>
     </br>
     <h2>TODO: 리뷰 작성시 키워드 설정하는 부분은 기획 확정되면 넣을 예정 </h2> </br>
@@ -65,10 +69,8 @@ async def get_reviews(
     try:
         user_like_list = crud.user_like.get_like_review_list_by_current_user(db, current_user)
     except AttributeError as e:
-        print(e)
         user_like_list = []
 
-    print(user_like_list)
     query = crud.review.get_list_paginated(db, page_request, filters)
     review_list = [schemas.ReviewResponse(
         id=review.id,
