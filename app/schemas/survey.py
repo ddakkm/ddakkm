@@ -18,7 +18,7 @@ class SurveyAData(BaseModel):
     # 1번 질문 > 1~6번 답변 혹은 string
     @validator("q1")
     def limit_q1_range(cls, v):
-        if len(v) > 8:
+        if len(v) > 9:
             raise ValueError("Out of Range")
         for value in v:
             if isinstance(value, str) is False:
@@ -119,6 +119,7 @@ class SurveyType(str, Enum):
     C = "C"
 
 
+# TODO survey_details Validation
 class SurveyCreate(BaseModel):
     survey_type: SurveyType = SurveyType.A
     survey_details: dict
@@ -132,10 +133,10 @@ survey_details_example = {
                     "content": "복통이 심했어요",
                     "images": {
                         "image1_url": "http://sample.com/1",
-                        "image2_url": "string",
-                        "image3_url": "string",
-                        "image4_url": None,
-                        "image5_url": None
+                        "image2_url": "http://sample.com/2",
+                        "image3_url": "http://sample.com/3",
+                        "image4_url": "http://sample.com/4",
+                        "image5_url": "http://sample.com/5"
                         },
                     "survey": {
                         "survey_type": "A",
