@@ -5,13 +5,13 @@ from sqlalchemy.orm import Session
 from app.core.security import get_password_hash, verify_password
 from app.crud.base import CRUDBase
 from app.models.users import User
-from app.schemas.user import UserCreate, UserUpdate
+from app.schemas.user import UserCreate, UserUpdate, SNSUserCreate
 from app.utils.user import nickname_randomizer
 
 
 class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
     # TODO : nickname_randomizer 실행 전 이메일 중복등 validation 필요
-    def create(self, db: Session, *, obj_in: UserCreate) -> User:
+    def create_local(self, db: Session, *, obj_in: UserCreate) -> User:
         db_obj = User(
             sns_provider=obj_in.sns_provider,
             email=obj_in.email,
@@ -19,7 +19,24 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
             join_survey_code=obj_in.join_survey_code,
             gender=obj_in.gender,
             age=obj_in.age,
-            nickname=nickname_randomizer()
+            nickname=nickname_randomizer(),
+            sns_id="LOCAL_USER"
+        )
+        db.add(db_obj)
+        db.commit()
+        db.refresh(db_obj)
+        return db_obj
+
+    def create_sns(self, db: Session, *, obj_in: SNSUserCreate, sns_id: str) -> User:
+        db_obj = User(
+            sns_provider=obj_in.sns_provider,
+            email="",
+            hashed_password="",
+            join_survey_code=obj_in.join_survey_code,
+            gender=obj_in.gender,
+            age=obj_in.age,
+            nickname=nickname_randomizer(),
+            sns_id=sns_id
         )
         db.add(db_obj)
         db.commit()
@@ -36,6 +53,9 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
         if not verify_password(password, user.hashed_password):
             return None
         return user
+
+    def get_by_sns_id(self, db: Session, *, sns_id: str) -> Optional[User]:
+        return db.query(self.model).filter(self.model.sns_id == sns_id).first()
 
 
 user = CRUDUser(User)

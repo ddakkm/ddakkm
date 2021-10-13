@@ -1,4 +1,4 @@
-from .user import UserCreate, UserUpdate
+from .user import UserCreate, UserUpdate, SNSUserCreate, SNSUserUpdate, OauthLogin
 from .review import ReviewCreate, ReviewUpdate, Review, ReviewResponse
 from .survey import SurveyACreate, SurveyAUpdated, survey_details_example
 from .comment import CommentCreate, CommentUpdate, Comment

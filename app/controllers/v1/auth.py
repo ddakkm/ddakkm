@@ -1,14 +1,16 @@
-from typing import Any
+import requests
+from typing import Any, Dict
 from datetime import timedelta
 
 from sqlalchemy.orm import Session
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Body
 from fastapi.security import OAuth2PasswordRequestForm
 
 from app import crud, schemas
 from app.core import security
 from app.core.config import settings
 from app.controllers import deps
+from app.models.users import SnsProviderType
 
 router = APIRouter()
 
@@ -31,7 +33,7 @@ async def create_user(
     |age|int|출생 연도를 받습니다.|
     |join_survey_code|enum(string)|가입 설문의 종류를 뜻하는 파라미터로, "NONE", "A", "B", "C" 를 받습니다.|
     """
-    return crud.user.create(db, obj_in=user_in)
+    return crud.user.create_local(db, obj_in=user_in)
 
 
 @router.post("/login/local")
@@ -57,3 +59,31 @@ async def login_access_token(
         "token_type": "bearer",
     }
 
+
+@router.post("/login/sns")
+async def login_access_token(
+        oauth_in: schemas.OauthLogin,
+        db: Session = Depends(deps.get_db)
+) -> Any:
+    
+    # kakao
+    if oauth_in.sns_provider == SnsProviderType.KAKAO:
+        headers = {"Authorization": f"Bearer {oauth_in.sns_access_token}"}
+        response = requests.get('https://kapi.kakao.com/v1/user/access_token_info', headers=headers)
+        # 카카오 서버에서 엑세스토큰 안주는 경우
+        if response.status_code != 200:
+            raise HTTPException(status_code=400, detail="카카오 인증서버를 통해 인증할 수 없는 ACCESS TOKEN 입니다.")
+        sns_id = str(response.json().get('id'))
+        user = crud.user.get_by_sns_id(db, sns_id=sns_id)
+        # 이미 회원인 경우 > 로그인용 액세스 토큰 발급
+        if user:
+            access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+            return {
+                "access_token": security.create_access_token(user.id, expires_delta=access_token_expires),
+                "token_type": "bearer"
+            }
+        # 회원 아닌경우 > ??? 논의 필요 
+        else:
+            raise HTTPException(303, "회원 가입 절차를 진행해주세요.")
+    if oauth_in.sns_provider != SnsProviderType.KAKAO:
+        raise HTTPException(500, "아직 미천한 제가 구현하지 않았습니다.")
