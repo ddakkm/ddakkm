@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.core.security import get_password_hash, verify_password
 from app.crud.base import CRUDBase
-from app.models.users import User
+from app.models.users import User, JoinSurveyCode
 from app.schemas.user import UserCreate, UserUpdate, SNSUserCreate
 from app.utils.user import nickname_randomizer
 
@@ -32,7 +32,7 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
             sns_provider=obj_in.sns_provider,
             email="",
             hashed_password="",
-            join_survey_code=obj_in.join_survey_code,
+            join_survey_code=JoinSurveyCode.NONE,
             gender=obj_in.gender,
             age=obj_in.age,
             nickname=nickname_randomizer(),

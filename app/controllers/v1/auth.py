@@ -15,7 +15,7 @@ from app.models.users import SnsProviderType
 router = APIRouter()
 
 
-@router.post("/sign-up", deprecated=True)
+@router.post("/sign-up/local", deprecated=True)
 async def create_user(
         *,
         db: Session = Depends(deps.get_db),
@@ -35,6 +35,24 @@ async def create_user(
     |join_survey_code|enum(string)|가입 설문의 종류를 뜻하는 파라미터로, "NONE", "A", "B", "C" 를 받습니다.|
     """
     return crud.user.create_local(db, obj_in=user_in)
+
+
+# TODO
+@router.post("/sign-up/sns", deprecated=True)
+async def create_user(
+        *,
+        db: Session = Depends(deps.get_db),
+        user_in: schemas.SNSUserCreate
+) -> Any:
+    """
+    <h1>TODO
+    </h1>
+    """
+    # 카카오
+
+    # 네이버
+
+    return crud.user.create_sns(db, obj_in=user_in, sns_id="")
 
 
 @router.post("/login/local", deprecated=True)
