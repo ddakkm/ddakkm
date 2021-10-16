@@ -1,26 +1,25 @@
-import requests
-from typing import Any, Dict
+from typing import Any
 from datetime import timedelta
 
 from sqlalchemy.orm import Session
-from fastapi import APIRouter, Depends, HTTPException, Body
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 
-from app import crud, schemas
+from app import crud, schemas, models
 from app.core import security
 from app.core.config import settings
 from app.controllers import deps
-from app.models.users import SnsProviderType
+from app.utils.auth import generate_access_token_for_sns_user, get_sns_id
 
 router = APIRouter()
 
 
 @router.post("/sign-up/local", deprecated=True)
-async def create_user(
+async def create_user_local(
         *,
         db: Session = Depends(deps.get_db),
         user_in: schemas.UserCreate
-) -> Any:
+) -> models.User:
     """
     <h1>개발 테스트 용으로 임시 사용합니다. 상용서버에선 삭제할 예정</h1> </br>
     회원가입 API  </br>
@@ -37,29 +36,25 @@ async def create_user(
     return crud.user.create_local(db, obj_in=user_in)
 
 
-# TODO
-@router.post("/sign-up/sns", deprecated=True)
-async def create_user(
+@router.post("/sign-up/sns")
+async def create_user_sns(
         *,
         db: Session = Depends(deps.get_db),
+        oauth_in: schemas.OauthIn,
         user_in: schemas.SNSUserCreate
-) -> Any:
-    """
-    <h1>TODO
-    </h1>
-    """
-    # 카카오
-
-    # 네이버
-
-    return crud.user.create_sns(db, obj_in=user_in, sns_id="")
+) -> models.User:
+    sns_id = get_sns_id(sns_access_token=oauth_in.sns_access_token, sns_provider=oauth_in.sns_provider)
+    user_checker = crud.user.get_by_sns_id(db=db, sns_id=sns_id)
+    if user_checker:
+        raise HTTPException(status_code=400, detail="이미 가입된 회원입니다.")
+    return crud.user.create_sns(db, obj_in=user_in, oauth_in=oauth_in, sns_id=sns_id)
 
 
 @router.post("/login/local", deprecated=True)
-async def login_access_token(
+async def login_local(
         form_data: OAuth2PasswordRequestForm = Depends(),
         db: Session = Depends(deps.get_db)
-):
+) -> schemas.LoginResponse:
     """
     <h1>개발 테스트 용으로 임시 사용합니다. 상용서버에선 삭제할 예정</h1>
     로그인 API로 서버 내에서 HS256 알고리즘으로 인코딩된 JWT를 발급합니다. \n
@@ -72,74 +67,17 @@ async def login_access_token(
             status_code=400, detail="Inccorect email or password"
         )
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    return {
-        "access_token": security.create_access_token(
-            user.id, expires_delta=access_token_expires
-        ),
-        "token_type": "bearer",
-    }
+    return schemas.LoginResponse(
+        is_user=True,
+        access_token=security.create_access_token(user.id, expires_delta=access_token_expires)
+    )
 
 
 @router.post("/login/sns")
-async def login_access_token(
-        oauth_in: schemas.OauthLogin,
+async def login_sns(
+        oauth_in: schemas.OauthIn,
         db: Session = Depends(deps.get_db)
-) -> Any:
-
-
-    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-
-    # kakao
-    if oauth_in.sns_provider == SnsProviderType.KAKAO:
-        # TODO 유틸함수로 분리
-        headers = {"Authorization": f"Bearer {oauth_in.sns_access_token}"}
-        response = requests.get('https://kapi.kakao.com/v1/user/access_token_info', headers=headers)
-
-        # 카카오 서버에서 준 엑세스토큰 이상한 경우 > 400
-        if response.status_code != 200:
-            raise HTTPException(status_code=400, detail="카카오 인증서버를 통해 인증할 수 없는 ACCESS TOKEN 입니다.")
-        sns_id = str(response.json().get('id'))
-        user = crud.user.get_by_sns_id(db, sns_id=sns_id)
-
-        # 이미 회원인 경우 > is_user: True /  로그인용 액세스 토큰 발급
-        if user:
-            return schemas.login.LoginResponse(
-                is_user=True,
-                access_token=security.create_access_token(subject=user.id, expires_delta=access_token_expires)
-            )
-
-        # 회원 아닌경우 > is_user: False / 로그인용 액세스토큰 null
-        else:
-            return schemas.login.LoginResponse(
-                is_user=False,
-                access_token=None
-            )
-
-    # naver >>> 테스트 필요
-    if oauth_in.sns_provider == SnsProviderType.NAVER:
-        # TODO 유틸함수로 분리
-        headers = {"Authorization": f"Bearer {oauth_in.sns_access_token}"}
-        response = requests.get("https://openapi.naver.com/v1/nid/me", headers=headers)
-
-        # 네이버 서버에서 준 액세스토큰 이상한 경우 > 400
-        if response.status_code != 200:
-            raise HTTPException(status_code=400, detail="네이버 인증서버를 통해 인증할 수 없는 ACCESS TOKEN 입니다.")
-        sns_id = str(response.json().get('id'))
-        user = crud.user.get_by_sns_id(db, sns_id=sns_id)
-
-        # 이미 회원인 경우 > is_user: True / 로그인용 액세스 토큰 발급
-        if user:
-            return schemas.login.LoginResponse(
-                is_user=True,
-                access_token=security.create_access_token(subject=user.id, expires_delta=access_token_expires)
-            )
-
-        # 회원 아닌경우 > is_user: False / 로그인용 액세스토큰 null
-        else:
-            return schemas.login.LoginResponse(
-                is_user=False,
-                access_token=None
-            )
-
-    else:
-        raise HTTPException(status_code=400, detail="로컬 회원은 본 API로 인증할 수 없습니다.")
+) -> schemas.login.LoginResponse:
+    sns_id = get_sns_id(sns_access_token=oauth_in.sns_access_token, sns_provider=oauth_in.sns_provider)
+    user = crud.user.get_by_sns_id(db=db, sns_id=sns_id)
+    return generate_access_token_for_sns_user(user)

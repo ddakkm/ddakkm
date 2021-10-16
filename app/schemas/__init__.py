@@ -1,5 +1,5 @@
 from .login import LoginResponse
-from .user import UserCreate, UserUpdate, SNSUserCreate, SNSUserUpdate, OauthLogin
+from .user import UserCreate, UserUpdate, SNSUserCreate, SNSUserUpdate, OauthIn
 from .review import ReviewCreate, ReviewUpdate, Review, ReviewResponse
 from .survey import SurveyACreate, SurveyAUpdated, survey_details_example
 from .comment import CommentCreate, CommentUpdate, Comment

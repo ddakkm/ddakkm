@@ -19,7 +19,7 @@ class CRUDReview(CRUDBase[Review, ReviewCreate, ReviewUpdate]):
     def create_by_current_user(self, db: Session, *, obj_in: ReviewCreate, user_id: int):
         # 리뷰 작성을 위한 요청 바디에 포함되어있는 user_id로 서베이를 등록한다.
         survey_create_schema = SurveyA(**jsonable_encoder(obj_in.survey.survey_details), user_id=user_id)
-        survey_id = survey_a.create_local(db=db, obj_in=survey_create_schema).id
+        survey_id = survey_a.create(db=db, obj_in=survey_create_schema).id
 
         # 서베이 등록 후 리뷰 등록
         db_obj = self.model(

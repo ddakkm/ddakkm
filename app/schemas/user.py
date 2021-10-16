@@ -4,10 +4,8 @@ from app.models.users import SnsProviderType, Gender, JoinSurveyCode
 
 
 class UserBase(BaseModel):
-    sns_provider: SnsProviderType = SnsProviderType.LOCAL
     gender: Gender = Gender.ETC
     age: int = 1980
-    join_survey_code: JoinSurveyCode = JoinSurveyCode.NONE
 
 
 class UserCreate(UserBase):
@@ -28,13 +26,15 @@ class SNSUserUpdate(UserBase):
     pass
 
 
-class OauthLogin(BaseModel):
+class OauthIn(BaseModel):
     sns_provider: SnsProviderType
     sns_access_token: str
 
 
 class User(UserBase):
     nickname: str
+    join_survey_code: JoinSurveyCode = JoinSurveyCode.NONE
+    sns_provider: SnsProviderType = SnsProviderType.LOCAL
 
     class Config:
         orm_mode = True
