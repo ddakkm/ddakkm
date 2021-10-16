@@ -37,7 +37,7 @@ class ReviewCreate(ReviewBase):
 
 
 class ReviewUpdate(ReviewBase):
-    survey: Optional[SurveyCreate]
+    pass
 
 
 class Review(ReviewBase):

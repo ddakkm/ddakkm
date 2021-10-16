@@ -100,7 +100,7 @@ async def edit_review(
 ) -> models.Review:
     """
     <h1> 사용자가 게시한 리뷰를 수정합니다. </h1> </br>
-    <h2> TODO : 기획 내용에 맞게 설문조사 수정 가능여부 확인 후 반영
+    <h2> TODO : 삭제한 리뷰 수정 못하게
     </h2>
     """
     db_obj = crud.review.get_review(db, id=review_id)
@@ -116,7 +116,9 @@ async def delete_review(
     """
     <h1> 게시글의 상태를 삭제됨으로 변경합니다.</h1> </br>
     삭제 상태의 게시글은 리스트에 표현되지 않으며, 상세 정보 조회가 불가능합니다.
-    슈퍼 유저는 본인이 작성한 게시글이 아니어도 삭제할 수 있습니다.
+    슈퍼 유저는 본인이 작성한 게시글이 아니어도 삭제할 수 있습니다. </br>
+    <h2> TODO: 이미 삭제된 리뷰인 경우 반환값 조정 필요
+    </h2>
     """
     db_obj = crud.review.get_review(db, id=review_id)
     return crud.review.set_review_status_as_deleted(db, db_obj=db_obj, current_user=current_user)
@@ -136,7 +138,10 @@ async def report_review(
     review_id: 신고하려는 리뷰 id </br>
     </br>
     </br>
-    파라미터로 넘어온 리뷰 id 에 해당하는 리뷰가 존재하지 않는 경우, 404에러를 반환합니다. (성공시 200)
+    파라미터로 넘어온 리뷰 id 에 해당하는 리뷰가 존재하지 않는 경우, 404에러를 반환합니다. (성공시 200) </br>
+    <h2>
+    TODO: 삭제한 리뷰 신고 못하게
+    </h2>
     """
     subject = f"[ddakkm 리뷰 신고] 게시글 ID {review_id}"
     review_content = crud.review.get_review(db, review_id).content
@@ -160,7 +165,10 @@ async def create_comment(
     <h1> 리뷰에 코멘트를 추가합니다. </h1> </br>
     </br>
     댓글 내용은 {"content": "댓글 내용"} <- 형식의 json Body로 받고,  </br>
-    글을 작성하고자 하는 review_id 를 Path Parameter 로 받습니다.
+    글을 작성하고자 하는 review_id 를 Path Parameter 로 받습니다. </br>
+    <h2>
+    TODO: 삭제한 리뷰 댓글 못달게
+    </h2>
     """
     return crud.comment.create_by_current_user(db, obj_in=comment_in, current_user=current_user, review_id=review_id)
 
