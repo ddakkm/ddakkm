@@ -14,6 +14,51 @@ from app.utils.auth import generate_access_token_for_sns_user, get_sns_id
 router = APIRouter()
 
 
+@router.post("/sign-up", response_model=schemas.CreateSnsResponse)
+async def create_user_sns(
+        *,
+        db: Session = Depends(deps.get_db),
+        oauth_in: schemas.OauthIn,
+        user_in: schemas.SNSUserCreate
+) -> models.User:
+    """
+    <h1>SNS 인증 서버를 통해 발급받은 SNS용 Access Token을 이용해 회원가입을 합니다. </h1> </br>
+    "oauth_in" 키에는 SNS 인증정보 (SNS Provider와, SNS Access Token)를, "user_in" 키에는 회원정보 (성별과 생년)을 받습니다. </br>
+    바로 로그인을 하기 위해 __회원가입 성공시 생성된 유저 모델 정보와 함께 access_token 값도 리턴__합니다. </br>
+    이미 회원이거나, SNS에서 발급받은 access_token이 무효한 경우 400에러를 반환합니다.
+    </br></br>
+    현재 기획서상 비회원 유저의 서비스 사용 절차는 다음과 같습니다. </br>
+    SNS 인증정보를 가지고 로그인 요청 > 로그인 실패 > 회원가입 요청 >
+    회원가입 성공시 access_token 반환 > 회원 가입 성공의 리턴값으로 받은 access_token으로 다시 로그인 요청
+    """
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    sns_id = get_sns_id(sns_access_token=oauth_in.sns_access_token, sns_provider=oauth_in.sns_provider)
+    user_checker = crud.user.get_by_sns_id(db=db, sns_id=sns_id)
+    if user_checker:
+        raise HTTPException(status_code=400, detail="이미 가입된 회원입니다.")
+    new_user = crud.user.create_sns(db, obj_in=user_in, oauth_in=oauth_in, sns_id=sns_id)
+    setattr(new_user, 'access_token', security.create_access_token(new_user.id, expires_delta=access_token_expires))
+    return new_user
+
+
+@router.post("/login", response_model=schemas.LoginResponse)
+async def login_sns(
+        oauth_in: schemas.OauthIn,
+        db: Session = Depends(deps.get_db)
+) -> schemas.login.LoginResponse:
+    """
+    <h1>SNS 인증 서버를 통해 발급받은 SNS용 Access Token을 이용해 로그인 합니다. </h1> </br>
+    SNS 인증정보 (SNS Provider와, SNS Access Token)를 받습니다. </br>
+    </br>
+    회원일 경우 "is_user": true 플래그와 "access_token" 값을 리턴합니다. </br>
+    비회원일 경우 "is_user" false 플래그와 "access_token" 을 null 값으로 리턴합니다. </br>
+    SNS에서 발급받은 access_token이 무효한 경우 400에러를 반환합니다.
+    """
+    sns_id = get_sns_id(sns_access_token=oauth_in.sns_access_token, sns_provider=oauth_in.sns_provider)
+    user = crud.user.get_by_sns_id(db=db, sns_id=sns_id)
+    return generate_access_token_for_sns_user(user)
+
+
 @router.post("/sign-up/local", deprecated=True)
 async def create_user_local(
         *,
@@ -34,20 +79,6 @@ async def create_user_local(
     |join_survey_code|enum(string)|가입 설문의 종류를 뜻하는 파라미터로, "NONE", "A", "B", "C" 를 받습니다.|
     """
     return crud.user.create_local(db, obj_in=user_in)
-
-
-@router.post("/sign-up/sns")
-async def create_user_sns(
-        *,
-        db: Session = Depends(deps.get_db),
-        oauth_in: schemas.OauthIn,
-        user_in: schemas.SNSUserCreate
-) -> models.User:
-    sns_id = get_sns_id(sns_access_token=oauth_in.sns_access_token, sns_provider=oauth_in.sns_provider)
-    user_checker = crud.user.get_by_sns_id(db=db, sns_id=sns_id)
-    if user_checker:
-        raise HTTPException(status_code=400, detail="이미 가입된 회원입니다.")
-    return crud.user.create_sns(db, obj_in=user_in, oauth_in=oauth_in, sns_id=sns_id)
 
 
 @router.post("/login/local", deprecated=True)
@@ -71,13 +102,3 @@ async def login_local(
         is_user=True,
         access_token=security.create_access_token(user.id, expires_delta=access_token_expires)
     )
-
-
-@router.post("/login/sns")
-async def login_sns(
-        oauth_in: schemas.OauthIn,
-        db: Session = Depends(deps.get_db)
-) -> schemas.login.LoginResponse:
-    sns_id = get_sns_id(sns_access_token=oauth_in.sns_access_token, sns_provider=oauth_in.sns_provider)
-    user = crud.user.get_by_sns_id(db=db, sns_id=sns_id)
-    return generate_access_token_for_sns_user(user)
