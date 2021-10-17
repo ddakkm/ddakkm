@@ -125,6 +125,10 @@ class SurveyCreate(BaseModel):
     survey_details: dict
 
 
+class Survey(SurveyCreate):
+    pass
+
+
 survey_details_example = {
             "A": {
                 "summary": "A 타입 설문지 예시",

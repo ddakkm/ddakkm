@@ -1,9 +1,10 @@
-from typing import Optional, Union
+from typing import Optional, List
 
 from pydantic import BaseModel
 
-from app.schemas.survey import SurveyA, VaccineType, VaccineRound, SurveyCreate
+from app.schemas.survey import Survey, VaccineType, VaccineRound, SurveyCreate
 from app.schemas.user import User, Gender
+from app.schemas.comment import Comment
 
 
 class ReviewParams(BaseModel):
@@ -41,9 +42,12 @@ class ReviewUpdate(ReviewBase):
 
 
 class Review(ReviewBase):
+    id: int
+    survey: Survey
+    is_writer: bool
     user_id: int
-    survey: SurveyA
-    user: User
+    nickname: str
+    comments: List[Comment]
 
     class Config:
         orm_mode = True

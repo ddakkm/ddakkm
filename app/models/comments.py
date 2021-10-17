@@ -14,5 +14,5 @@ class Comment(Base):
     is_delete = Column(Boolean, default=False)
 
     # Many to One
-    user = relationship("User", back_populates="comments", join_depth=1, uselist=False)
+    user = relationship("User", back_populates="comments", join_depth=1, uselist=False, lazy="joined")
     review = relationship("Review", back_populates="comments", join_depth=1, uselist=False)

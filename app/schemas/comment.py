@@ -1,3 +1,5 @@
+from typing import Optional, List
+
 from pydantic import BaseModel
 
 
@@ -13,20 +15,17 @@ class CommentUpdate(CommentBase):
     pass
 
 
-class Comment(CommentBase):
-    id: int
-    review_id: int
-    user_id: int
-
-    class Config:
-        orm_mode = True
-
-
 class NestedComment(CommentBase):
     id: int
-    review_id: int
     user_id: int
-    parent_id: int
+    nickname: str
+
+
+class Comment(CommentBase):
+    id: int
+    user_id: int
+    nickname: str
+    nested_comment: Optional[List[NestedComment]]
 
     class Config:
         orm_mode = True

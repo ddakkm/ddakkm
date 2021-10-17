@@ -1,13 +1,14 @@
-from typing import Any, Union, Optional
+from typing import Any, Union, List
 
-from jose import jwt
 from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends, BackgroundTasks, Body
+from fastapi.encoders import jsonable_encoder
 from pydantic import EmailStr
 
 from app.core.config import settings
 from app.controllers import deps
 from app.utils.smpt import email_sender
+from app.utils.comment import comment_model_to_dto
 from app.utils.review import symtom_randomizer
 from app import crud, schemas, models
 
@@ -55,6 +56,7 @@ async def get_reviews(
 ) -> schemas.PageResponse:
     """
     <h1> 메인 페이지를 위해 리뷰 리스트를 불러옵니다. </h1> </br>
+    __로그인 액세스 토큰 없이(비회원도) 접근 가능한 API 입니다.__ </br> </br>
     pagination이 구현되어있어, "page_meta"에 페이지 네이션에 대한 정보가 기록되어 옵니다.  </br>
     필터를 적용하였으며, 각 필터값에 해당하는 Query parameter를 안보내면 기본적으로 전체값을 리턴합니다. </br>
     로그인 한 유저 (Reqeust Header > Authorization에 Access Token을 넣어 요청하는 경우)는 "user_is_like"
@@ -89,6 +91,56 @@ async def get_reviews(
         page_meta=query.get("page_meta"),
         contents=review_list
     )
+
+
+@router.get("/{review_id}", response_model=schemas.Review)
+async def get_review_details(
+        review_id: int,
+        db: Session = Depends(deps.get_db),
+        current_user: Union[models.User, None] = Depends(deps.get_current_user_optional)
+) -> schemas.Review:
+    """
+    <h1> 요청한 id에 해당하는 리뷰의 상세 정보를 반환합니다. </h1> </br>
+    __로그인 액세스 토큰 없이(비회원도) 접근 가능한 API 입니다.__ </br> </br> </br>
+    __*파라미터 설명__
+    |파라미터|타입|내용|
+    |------|---|--|
+    |id|int|review의 id값|
+    |user_id|int|작성자의 id값|
+    |nickname|string|작성자의 닉네임|
+    |content|string|리뷰내용|
+    |images|object|첨부 이미지 url (*없는 url에는 null 리턴)|
+    |survey|object|설문지 타입과 설문 내용 (*리뷰에는 설문 타입 A만 리턴됩니다. 설문 내용은 리뷰 생성/가입설문 A의 설문 양식과 동일합니다.)|
+    |is_writer|bool|로그인 사용자가 작성자인지 아닌지를 판별 (*글 작성자가 자기의 글을 볼 때 이 값이 true로 리턴됩니다.)|
+    |comment|list of objects|comment 리스트를 반환|
+
+    __*comment object 파라미터 설명__
+    |파라미터|타입|내용|
+    |------|---|--|
+    |id|int|comment의 id값|
+    |user_id|int|작성자의 id값|
+    |nickname|string|작성자의 닉네임|
+    |content|string|댓글 내용|
+    |nested_comment|list of objects|댓글의 댓글 리스트|
+    <h2> TODO : 태그 관련 기능
+    </h3>
+    """
+    # 비회원인 경우 id 값이 없기 때문에, 작성자인지 여부를 판별할 수 없음 -> 이에 따라 임시 orm 모델로 변환시켜줌
+    if current_user is None:
+        current_user = models.User(id=0)
+    review_obj = crud.review.get_review_details(db=db, review_id=review_id)
+    delattr(review_obj.survey, "id")
+    review_details = schemas.Review(
+        id=review_obj.id,
+        content=review_obj.content,
+        images=review_obj.images,
+        user_id=review_obj.user_id,
+        survey=schemas.Survey(survey_type=schemas.SurveyType.A, survey_details=jsonable_encoder(review_obj.survey)),
+        is_writer=review_obj.user_id == current_user.id,
+        nickname=review_obj.user.nickname,
+        comments=comment_model_to_dto(review_obj.comments)
+    )
+    return review_details
 
 
 @router.patch("/{review_id}")
