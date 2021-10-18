@@ -125,6 +125,11 @@ class SurveyCreate(BaseModel):
     survey_details: dict
 
 
+class ReviewSurveyCreate(BaseModel):
+    survey_details: dict
+
+
+
 class Survey(SurveyCreate):
     pass
 
@@ -143,7 +148,6 @@ survey_details_example = {
                         "image5_url": "http://sample.com/5"
                         },
                     "survey": {
-                        "survey_type": "A",
                         "survey_details": {
                           "vaccine_type": "ETC",
                           "vaccine_round": "FIRST",
