@@ -1,8 +1,10 @@
 from typing import TypeVar, Generic, List, Callable
 
-from sqlalchemy.orm import Session, Query
+from sqlalchemy.orm import Query
 from pydantic.generics import GenericModel
 from pydantic import BaseModel
+
+from app import schemas
 
 ModelType = TypeVar("ModelType")
 
@@ -17,6 +19,11 @@ class PageMeta(BaseModel):
 class PageResponse(GenericModel, Generic[ModelType]):
     page_meta: PageMeta
     contents: List[ModelType]
+
+
+class PageResponseReviews(GenericModel, Generic[ModelType]):
+    page_meta: PageMeta
+    contents: List[schemas.ReviewResponse]
 
 
 def paginated_query(page_request: dict, base_query: Query, query_executor: Callable):

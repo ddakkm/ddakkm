@@ -129,7 +129,6 @@ class ReviewSurveyCreate(BaseModel):
     survey_details: dict
 
 
-
 class Survey(SurveyCreate):
     pass
 

@@ -21,7 +21,7 @@ async def create_review(
         db: Session = Depends(deps.get_db),
         review_in: schemas.ReviewCreate = Body(None, examples=schemas.survey_details_example),
         current_user: models.User = Depends(deps.get_current_user)
-) -> Any:
+) -> models.Review:
     """
     <h1> 리뷰를 생성합니다. </h1> </br>
     리뷰에는 항상 A 형식의 설문지가 포함되어야 합니다. </br>
@@ -46,7 +46,7 @@ async def create_review(
     return crud.review.create_by_current_user(db, obj_in=review_in, user_id=current_user.id)
 
 
-@router.get("", response_model=schemas.PageResponse)
+@router.get("", response_model=schemas.PageResponseReviews)
 async def get_reviews(
         *,
         db: Session = Depends(deps.get_db),
