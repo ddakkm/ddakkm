@@ -38,7 +38,9 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
             gender=obj_in.gender,
             age=obj_in.age,
             nickname=nickname_randomizer(),
-            sns_id=sns_id
+            sns_id=sns_id,
+            agree_privacy_policy=obj_in.agree_privacy_policy,
+            agree_over_fourteen=obj_in.agree_over_fourteen
         )
         db.add(db_obj)
         db.commit()
