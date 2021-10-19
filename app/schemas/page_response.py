@@ -18,11 +18,9 @@ class PageMeta(BaseModel):
 
 class PageResponse(GenericModel, Generic[ModelType]):
     page_meta: PageMeta
-    contents: List[ModelType]
 
 
-class PageResponseReviews(GenericModel, Generic[ModelType]):
-    page_meta: PageMeta
+class PageResponseReviews(PageResponse):
     contents: List[schemas.ReviewResponse]
 
 

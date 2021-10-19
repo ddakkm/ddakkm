@@ -97,6 +97,7 @@ class SurveyA(SurveyABase):
         orm_mode = True
 
 
+# Survey B type for join_survey
 class SurveyBBase(BaseModel):
     pass
 
@@ -105,6 +106,7 @@ class SurveyBCreate(SurveyBBase):
     pass
 
 
+# Survey C type for join_survey
 class SurveyCBase(BaseModel):
     pass
 
@@ -113,6 +115,7 @@ class SurveyCCreate(SurveyBBase):
     pass
 
 
+# Survey type for join_survet -> 얘로 입력 받고 검증은 위에 애들로 함
 class SurveyType(str, Enum):
     A = "A"
     B = "B"
@@ -122,10 +125,6 @@ class SurveyType(str, Enum):
 # TODO survey_details Validation
 class SurveyCreate(BaseModel):
     survey_type: SurveyType = SurveyType.A
-    survey_details: dict
-
-
-class ReviewSurveyCreate(BaseModel):
     survey_details: dict
 
 
@@ -139,13 +138,6 @@ survey_details_example = {
                 "description": "A 타입 설문지 예시",
                 "value": {
                     "content": "복통이 심했어요",
-                    "images": {
-                        "image1_url": "http://sample.com/1",
-                        "image2_url": "http://sample.com/2",
-                        "image3_url": "http://sample.com/3",
-                        "image4_url": "http://sample.com/4",
-                        "image5_url": "http://sample.com/5"
-                        },
                     "survey": {
                         "survey_details": {
                           "vaccine_type": "ETC",

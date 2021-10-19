@@ -2,9 +2,10 @@ from typing import Optional, List
 
 from pydantic import BaseModel
 
-from app.schemas.survey import Survey, VaccineType, VaccineRound, SurveyCreate
+from app.schemas.survey import Survey, VaccineType, VaccineRound, SurveyCreate, SurveyACreate, SurveyA
 from app.schemas.user import User, Gender
 from app.schemas.comment import Comment
+from app.core.wrapper import as_form
 
 
 class ReviewParams(BaseModel):
@@ -33,8 +34,9 @@ class ReviewBase(BaseModel):
 
 
 # 리뷰 작성시 입력해야할 파라미터로 설문양식 A를 포함합니다.
+@as_form
 class ReviewCreate(ReviewBase):
-    survey: SurveyCreate
+    survey: SurveyACreate
 
 
 class ReviewUpdate(ReviewBase):
@@ -43,7 +45,7 @@ class ReviewUpdate(ReviewBase):
 
 class Review(ReviewBase):
     id: int
-    survey: Survey
+    survey: SurveyA
     is_writer: bool
     user_id: int
     nickname: str

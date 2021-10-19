@@ -1,7 +1,9 @@
-from typing import Any, Union, List
+import os
+from typing import Any, Union, List, Optional
+import uuid
 
 from sqlalchemy.orm import Session
-from fastapi import APIRouter, Depends, BackgroundTasks, Body
+from fastapi import APIRouter, Depends, BackgroundTasks, File, UploadFile, HTTPException
 from fastapi.encoders import jsonable_encoder
 from pydantic import EmailStr
 
@@ -10,6 +12,7 @@ from app.controllers import deps
 from app.utils.smpt import email_sender
 from app.utils.comment import comment_model_to_dto
 from app.utils.review import symtom_randomizer
+from app.utils.storage import s3_client
 from app import crud, schemas, models
 
 router = APIRouter()
@@ -19,7 +22,7 @@ router = APIRouter()
 async def create_review(
         *,
         db: Session = Depends(deps.get_db),
-        review_in: schemas.ReviewCreate = Body(None, examples=schemas.survey_details_example),
+        review_in: schemas.ReviewCreate,
         current_user: models.User = Depends(deps.get_current_user)
 ) -> models.Review:
     """
@@ -28,7 +31,7 @@ async def create_review(
     __*파라미터 설명__
     |파라미터|타입|내용|
     |-----|---|---|
-    |images|json|이미지 url을 json 형식으로 받습니다. 본 파라미터는 Optional 파라미터로, 첨부 이미지가 없는 경우 필수값이 아닙니다. </br> 이미지가 있다면 최소 한개 이미지의 url은 보내야 합니다.|
+    |images|json|이미지 url을 json 형식으로 받습니다. 본 파라미터는 Optional 파라미터로, 첨부 이미지가 없는 경우 필수값이 아닙니다. 즉, __"images": null__ 과 같이 요청해도 됩니다.</br> 이미지가 있다면 최소 한개 이미지의 url은 보내야 합니다.|
     |survey|json|백신 후기 설문의 상세 내용을 받습니다.|
     |survey > survey_type|enum(string)|"A", "B", "C"|
     |survey_details > vaccine_type|enum(string)|"ETC" , "PFIZER", "AZ", "MODERNA", "JANSSEN"|
@@ -70,7 +73,7 @@ async def get_reviews(
     # 로그인 상태면 현재 유저의 좋아요 기록 불러오기 / 로그인 상태가 아니면 좋아요 기록은 비어있음
     try:
         user_like_list = crud.user_like.get_like_review_list_by_current_user(db, current_user)
-    except AttributeError as e:
+    except AttributeError:
         user_like_list = []
 
     query = crud.review.get_list_paginated(db, page_request, filters)
@@ -87,10 +90,53 @@ async def get_reviews(
         comment_count=len(review.comments),
         user_is_like=review.id in user_like_list
     ) for review in query.get("contents")]
-    return schemas.PageResponse(
+    return schemas.PageResponseReviews(
         page_meta=query.get("page_meta"),
         contents=review_list
     )
+
+
+@router.post("/images", response_model=schemas.Images)
+async def create_images(
+        files: List[UploadFile] = File(...),
+        current_user: Union[models.User, None] = Depends(deps.get_current_user)
+) -> schemas.Images:
+    """
+    <h1> 이미지를 업로드하고, 업로드 된 이미지 url object를 반환받습니다. </h1>
+    이미지는 5개까지 업로드 할 수 있으며, files 파라미터에 파일을 넣어 요청하면 됩니다. </br>
+    복수 이미지를 업로드하는 예제 코드는 아래를 참조하세요. </br>
+    <h2> TODO: 테스트 / 실사용 버킷 개별 구성
+    </h2>
+    ```
+    curl -X 'POST' \ \n
+      'http://127.0.0.1:8000/v1/review/images' \ \n
+      -H 'accept: application/json' \ \n
+      -H 'Content-Type: multipart/form-data' \ \n
+      -F 'files=@image1.jpeg;type=image/jpeg' \ \n
+      -F 'files=@image2.png;type=image/png
+    ```
+    """
+    if len(files) > 5:
+        raise HTTPException(422, "이미지는 5개까지만 첨부할 수 있습니다.")
+
+    # 버킷에 업로드
+    [s3_client.upload_fileobj(
+        file.file,
+        'ddakkm-public',
+        f"images/{uuid.uuid5(uuid.NAMESPACE_OID, file.filename)}{os.path.splitext(file.filename)[1]}")
+        for file in files]
+
+    # 업로드된 이미지 url 스키마 리턴
+    uploaded_files = schemas.Images()
+    for i in range(5):
+        try:
+            setattr(uploaded_files,
+                    f"image{i+1}_url",
+                    f"https://ddakkm-public.s3.ap-northeast-2.amazonaws.com/images/"
+                    f"{uuid.uuid5(uuid.NAMESPACE_OID, files[i].filename)}{os.path.splitext(files[i].filename)[1]}")
+        except IndexError:
+            setattr(uploaded_files, f"image{i+1}_url", None)
+    return uploaded_files
 
 
 @router.get("/{review_id}", response_model=schemas.Review)
