@@ -181,7 +181,7 @@ async def get_review_details(
         content=review_obj.content,
         images=review_obj.images,
         user_id=review_obj.user_id,
-        survey=schemas.Survey(survey_type=schemas.SurveyType.A, survey_details=jsonable_encoder(review_obj.survey)),
+        survey=review_obj.survey,
         is_writer=review_obj.user_id == current_user.id,
         nickname=review_obj.user.nickname,
         comments=comment_model_to_dto(review_obj.comments)
