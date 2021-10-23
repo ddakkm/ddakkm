@@ -1,5 +1,5 @@
 from .user import user
 from .review import review
-from .survey import survey_a
+from .survey import survey_a, survey_b, survey_c
 from .comment import comment
 from .user_like import user_like

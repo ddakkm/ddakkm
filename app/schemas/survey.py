@@ -1,73 +1,94 @@
 from enum import Enum
-from typing import Union, Optional, List
+from typing import Union, Optional, List, Any
 
+from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel, validator
 
 from app.models.surveys import VaccineType, VaccineRound, DATE_FROM
+
+
+# Survey type for join_survey -> 얘로 입력 받고 검증은 위에 애들로 함
+class SurveyType(str, Enum):
+    A = "A"
+    B = "B"
+    C = "C"
 
 
 class SurveyAData(BaseModel):
     q1: List[Union[int, str]] = [1]
     q2: int = 1
     q2_1: Optional[int] = None
-    q3: Union[int, str] = 1
+    q3: List[Union[int, str]] = [1]
     q4: List[Union[int, str]] = [1]
     q5: int = 1
 
-    # 1번 질문 > 답변의 요소가 7개 이상일 수 없음
-    # 1번 질문 > 1~6번 답변 혹은 string
     @validator("q1")
     def limit_q1_range(cls, v):
-        if len(v) > 9:
-            raise ValueError("Out of Range")
+        str_val = len([value for value in v if isinstance(value, str)])
+        if str_val > 1:
+            raise TypeError(f"A 타입 설문지 q1 설문은 2개 이상의 String 타입 답변을 가질 수 없습니다. "
+                            f"| length of string value in subjected list q1: {str_val}")
+        if len(v) > 8:
+            raise ValueError(f"A 타입 설문지 q1 설문의 가능한 최대 답변 갯수는 8개 (1번~7번 + 자유입력 1개) 입니다. "
+                             f"| length of subjected list of q1:  {len(v)}")
         for value in v:
             if isinstance(value, str) is False:
                 if value not in range(1, 8):
-                    raise ValueError("Out Of Range")
+                    raise ValueError(f"A 타입 설문지의 q1 설문의 번호 답변의 범위는 1번~7번 까지 입니다. | ValueError from {value}")
         return v
 
-    # 2번 질문 > 1~6번 답변
     @validator("q2")
     def limit_q2_range(cls, v):
         if v not in range(1, 7):
-            raise ValueError("Out Of Range")
+            raise ValueError(f"A 타입 설문지의 q2 설문의 번호 답변의 범위는 1번~6번 까지 입니다. | ValueError from {v}")
         return v
 
-    # 2번 질문이 1일때 > 2-1번 질문에는 답변이 없어야함
-    # 2번 질문이 1이 아닐때 > 2-1번의 답변은 None이면 안되고 1~4이어야 함
     @validator("q2_1")
     def limit_q2_1_range(cls, v, values):
         q2 = values.get("q2")
         if q2 == 1 and v is not None:
-            raise ValueError("if answer of q2 is 1, q2_1 needs to be None")
+            raise ValueError("q2의 답변이 1번이었다면 q2의 답변이 있을 수 없습니다 (\"q2\": null)")
         if v not in range(1, 5) and v is not None:
-            raise ValueError("Out Of Range")
+            raise ValueError(f"A 타입 설문지의 q2_1 설문의 번호 답변의 범위는 1번~4번 까지 입니다. | ValueError from {v}")
         return v
 
     # 3번 질문 > 1~4번 답변 혹은 string
     @validator("q3")
     def limit_q3_range(cls, v):
-        if isinstance(v, str) is False:
-            if v not in range(1, 5):
-                raise ValueError("Out Of Range")
+        str_val = len([value for value in v if isinstance(value, str)])
+        if str_val > 1:
+            raise TypeError(f"A 타입 설문지 q3 설문은 2개 이상의 String 타입 답변을 가질 수 없습니다. "
+                            f"| length of string value in subjected list q1: {str_val}")
+        if len(v) > 5:
+            raise ValueError(f"A 타입 설문지 q3 설문의 가능한 최대 답변 갯수는 5개 (1번~4번 + 자유입력 1개) 입니다. "
+                             f"| length of subjected list of q1:  {len(v)}")
+        for value in v:
+            if isinstance(value, str) is False:
+                if value not in range(1, 5):
+                    raise ValueError(f"A 타입 설문지의 q1 설문의 번호 답변의 범위는 1번~4번 까지 입니다. | ValueError from {value}")
         return v
 
     # 4번 질문 > 1~5번 답변 혹은 string
     @validator("q4")
     def limit_q4_range(cls, v):
+        str_val = len([value for value in v if isinstance(value, str)])
+        if str_val > 1:
+            raise TypeError(f"A 타입 설문지 q4 설문은 2개 이상의 String 타입 답변을 가질 수 없습니다. "
+                            f"| length of string value in subjected list q1: {str_val}")
         if len(v) > 6:
-            raise ValueError("Out of Range")
+            raise ValueError(f"A 타입 설문지 q4 설문의 가능한 최대 답변 갯수는 6개 (1번~5번 + 자유입력 1개) 입니다. "
+                             f"| length of subjected list of q1:  {len(v)}")
         for value in v:
             if isinstance(value, str) is False:
-                if value not in range(1,6):
-                    raise ValueError("Out of Range")
+                if value not in range(1, 6):
+                    raise ValueError(f"A 타입 설문지의 q4 설문의 번호 답변의 범위는 1번~5번 까지 입니다. | ValueError from {value}")
         return v
 
     # 5번 질문 > 1~4번 답변
     @validator("q5")
     def limit_q5_range(cls, v):
-        if v not in range(1,5):
-            raise ValueError("Out of Range")
+        if v not in range(1, 5):
+            raise ValueError(f"A 타입 설문지의 q5 설문의 번호 답변의 범위는 1번~4번 까지 입니다. | ValueError from {v}")
         return v
 
 
@@ -99,37 +120,125 @@ class SurveyA(SurveyABase):
 
 # Survey B type for join_survey
 class SurveyBBase(BaseModel):
-    pass
+    q1: List[Union[int, str]] = [1]
+    q2: List[int]
+
+    @validator("q1")
+    def limit_q1_range(cls, v):
+        str_val = len([value for value in v if isinstance(value, str)])
+        if str_val > 1:
+            raise TypeError(f"B 타입 설문지 q1 설문은 2개 이상의 String 타입 답변을 가질 수 없습니다. "
+                            f"| length of string value in subjected list q1: {str_val}")
+        if len(v) > 5:
+            raise ValueError(f"B 타입 설문지 q1 설문의 가능한 최대 답변 갯수는 5개 (1번~4번 + 자유입력 1개) 입니다. "
+                             f"| length of subjected list of q1:  {len(v)}")
+        for value in v:
+            if isinstance(value, str) is False:
+                if value not in range(1, 5):
+                    raise ValueError(f"B 타입 설문지의 q1 설문의 번호 답변의 범위는 1번~4번 까지 입니다. | ValueError from {value}")
+        return v
+
+    @validator("q2")
+    def limit_q2_range(cls, v):
+        if len(v) > 5:
+            raise ValueError(f"B 타입 설문지 q2 설문의 가능한 최대 답변 갯수는 5개 (1번~5번) 입니다. | length of subjected list of q1:  {len(v)}")
+        for value in v:
+            if value not in range(1, 6):
+                raise ValueError(f"B 타입 설문지의 q2 설문의 번호 답변의 범위는 1번~5번 까지 입니다. | ValueError from {value}")
+        return v
 
 
 class SurveyBCreate(SurveyBBase):
     pass
 
 
+class SurveyBUpdate(SurveyBBase):
+    pass
+
+
+class SurveyB(SurveyBBase):
+    pass
+
+    class Config:
+        orm_mode = True
+
+
 # Survey C type for join_survey
 class SurveyCBase(BaseModel):
+    q1: List[Union[int, str]] = [1]
+    q2: List[int]
+
+    @validator("q1")
+    def limit_q1_range(cls, v):
+        str_val = len([value for value in v if isinstance(value, str)])
+        if str_val > 1:
+            raise TypeError(f"C 타입 설문지 q1 설문은 2개 이상의 String 타입 답변을 가질 수 없습니다. "
+                            f"| length of string value in subjected list q1: {str_val}")
+        if len(v) > 6:
+            raise ValueError(f"C 타입 설문지 q1 설문의 가능한 최대 답변 갯수는 6개 (1번~5번 + 자유입력 1개) 입니다. "
+                             f"| length of subjected list of q1:  {len(v)}")
+        for value in v:
+            if isinstance(value, str) is False:
+                if value not in range(1, 6):
+                    raise ValueError(f"C 타입 설문지의 q1 설문의 번호 답변의 범위는 1번~5번 까지 입니다. | ValueError from {value}")
+        return v
+
+    @validator("q2")
+    def limit_q2_range(cls, v):
+        if len(v) > 5:
+            raise ValueError(f"C 타입 설문지 q2 설문의 가능한 최대 답변 갯수는 5개 (1번~5번) 입니다. | length of subjected list of q1:  {len(v)}")
+        for value in v:
+            if value not in range(1, 6):
+                raise ValueError(f"C 타입 설문지의 q2 설문의 번호 답변의 범위는 1번~5번 까지 입니다. | ValueError from {value}")
+        return v
+
+
+class SurveyCCreate(SurveyCBase):
     pass
 
 
-class SurveyCCreate(SurveyBBase):
+class SurveyCUpdate(SurveyCBase):
     pass
 
 
-# Survey type for join_survet -> 얘로 입력 받고 검증은 위에 애들로 함
-class SurveyType(str, Enum):
-    A = "A"
-    B = "B"
-    C = "C"
+class SurveyC(SurveyCBase):
+    pass
+
+    class Config:
+        orm_mode = True
 
 
-# TODO survey_details Validation
-class SurveyCreate(BaseModel):
+class SurveyBase(BaseModel):
     survey_type: SurveyType = SurveyType.A
-    survey_details: dict
+    survey_details: Any                         # survey_details 의 타입은 밸리데이션 단계에서 주입
+
+    @validator("survey_details")
+    def check_survey_form(cls, v, values):
+        if values.get("survey_type") == SurveyType.A:
+            v = SurveyACreate(**jsonable_encoder(v))
+            return v
+
+        if values.get("survey_type") == SurveyType.B:
+            v = SurveyBCreate(**jsonable_encoder(v))
+            return v
+
+        if values.get("survey_type") == SurveyType.C:
+            v = SurveyCCreate(**jsonable_encoder(v))
+            return v
 
 
-class Survey(SurveyCreate):
+class SurveyCreate(SurveyBase):
     pass
+
+
+class SurveyUpdate(SurveyBase):
+    pass
+
+
+class Survey(SurveyBase):
+
+    class Config:
+        orm_mode = True
 
 
 survey_details_example = {
@@ -137,43 +246,45 @@ survey_details_example = {
                 "summary": "A 타입 설문지 예시",
                 "description": "A 타입 설문지 예시",
                 "value": {
-                    "content": "복통이 심했어요",
-                    "survey": {
-                        "survey_details": {
-                          "vaccine_type": "ETC",
-                          "vaccine_round": "FIRST",
-                          "is_crossed": False,
-                          "is_pregnant": False,
-                          "is_underlying_disease": False,
-                          "date_from": "ZERO_DAY",
-                          "data": {
-                            "q1": [
-                              1, 2, "콧등 근육쪽에 심한 근육통이 있었습니다."
-                            ],
-                            "q2": 2,
-                            "q2_1": 2,
-                            "q3": 1,
-                            "q4": [
-                              1
-                            ],
-                            "q5": 1
-                          }
-                        },
+                  "survey_type": "A",
+                  "survey_details": {
+                    "vaccine_type": "ETC",
+                    "vaccine_round": "FIRST",
+                    "is_crossed": False,
+                    "is_pregnant": False,
+                    "is_underlying_disease": False,
+                    "date_from": "ZERO_DAY",
+                    "data": {
+                      "q1": [1, 2, 3, 4, 5, 6, 7, "근육통 이요? 근육이 애초에 없었는데요"],
+                      "q2": 2,
+                      "q2_1": 2,
+                      "q3": [1, 2, 3, 4, "두통이요? 저는 머리가 없습니다."],
+                      "q4": [1, 2, 3, 4, 5, "속이요? 저는 다이어터인데요."],
+                      "q5": 1
                     }
+                  }
                 }
             },
             "B": {
                 "summary": "B 타입 설문지 예시",
                 "description": "B 타입 설문지 예시",
                 "value": {
-                    "TODO": "TODO"
-                },
+                  "survey_type": "B",
+                  "survey_details": {
+                    "q1": [1, 2, 3, 4, "엄마가 하래서"],
+                    "q2": [1, 2, 3]
+                  }
+                }
             },
             "C": {
                 "summary": "C 타입 설문지 예시",
                 "description": "C 타입 설문지 예시",
                 "value": {
-                    "TODO": "TODO"
-                },
+                  "survey_type": "C",
+                  "survey_details": {
+                    "q1": [1, 2, 3, 4, 5, "엄마가 하지 말래서"],
+                    "q2": [1, 2, 3]
+                  }
+                }
             }
 }
