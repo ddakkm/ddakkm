@@ -84,6 +84,7 @@ async def get_reviews(
         nickname=review.user.nickname,
         vaccine_round=review.survey.vaccine_round,
         vaccine_type=review.survey.vaccine_type,
+        # TODO 증상 리턴 모델 수정
         symptom=symtom_randomizer(review.survey.data),
         content=review.content,
         like_count=review.like_count,

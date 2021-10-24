@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pydantic import BaseModel, EmailStr
 
 from app.models.users import SnsProviderType, Gender, JoinSurveyCode
@@ -41,3 +43,15 @@ class User(UserBase):
 
     class Config:
         orm_mode = True
+
+
+class VaccineStatus(BaseModel):
+    join_survey_code: JoinSurveyCode
+    details: Optional[dict]
+
+
+class UserProfileResponse(BaseModel):
+    vaccine_status: VaccineStatus
+    post_counts: int = 0
+    comment_counts: int = 0
+    like_counts: int = 0

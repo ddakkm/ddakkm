@@ -73,17 +73,37 @@ async def create_join_survey(
     return crud.user.create_join_survey(db=db, survey_in=survey_in, user_id=current_user.id)
 
 
-@router.get("/me/profile")
+# TODO A타입 vaccine_round 는 최신 survey에서 가져와야 함
+@router.get("/me/profile", response_model=schemas.UserProfileResponse)
 async def get_my_profile(
         *,
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_user)
-) -> Any:
+) -> schemas.UserProfileResponse:
     """
-    <h1> TODO
-    </h2>
+    <h1> 회원 정보 요약본을 가져옵니다. </h2> </br>
+    __vaccine_status__이하 __join_survey_code__에서 유저가 어떤 설문을 선택했는지를 반환합니다. </br>
+    __join_survey_code__의 값이 A인 유저는 __vaccine_status__의 하위 속성으로 __details__라는 object를 갖는데,
+    이곳에서 __vaccine_round__(몇차수인지), __vaccine_type__(어떤 백신인지), __is_crossed__(교차접종인지)에 대한 정보를 함께 반환합니다. </br>
+    </br>
+    __join_survey_code__의 값이 B인 유저는 접종예정 유저로 접종 내역이 없기 때문에 __details__라는 object는 null 값을 반환합니다. </br>
+    </br>
+    __join_survey_code__의 값이 C나 NONE인 유저는 미접종 유저로 접종 내역이 없기 때문에 __details__라는 object는 null 값을 반환합니다. </br>
     """
-    return
+    user = crud.user.get(db=db, id=current_user.id)
+    post_counts = crud.review.get_review_counts_by_user_id(db=db, user_id=current_user.id)
+    comment_counts = crud.comment.get_comment_counts_by_user_id(db=db, user_id=current_user.id)
+    like_counts = crud.user_like.get_like_counts_by_user_id(db=db, user_id=current_user.id)
+    if user.join_survey_code == models.JoinSurveyCode.A:
+        details = {"vaccine_round": user.survey_a.vaccine_round,
+                   "vaccine_type": user.survey_a.vaccine_type,
+                   "is_crossed": user.survey_a.is_crossed}
+        vaccine_status = schemas.VaccineStatus(join_survey_code=user.join_survey_code, details=details)
+
+    else:
+        vaccine_status = schemas.VaccineStatus(join_survey_code=user.join_survey_code)
+    return schemas.UserProfileResponse(vaccine_status=vaccine_status,
+                                       post_counts=post_counts, comment_counts=comment_counts, like_counts=like_counts)
 
 
 @router.get("/me/post")

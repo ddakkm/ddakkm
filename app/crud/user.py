@@ -1,7 +1,7 @@
 import copy
 from typing import Optional, Union
 
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from fastapi.encoders import jsonable_encoder
 
 from app import crud, models
@@ -91,7 +91,7 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
         db.refresh(db_obj)
         return db_obj
 
-    def delete_by_user_id(self, db: Session, *, user_id: str) -> BaseResponse:
+    def delete_by_user_id(self, db: Session, *, user_id: int) -> BaseResponse:
         user = db.query(self.model).filter(self.model.id == user_id).first()
         message = f"user from {user.sns_provider} | user_id: {user_id} \n is deleted" \
                   f"deleted comment : {len(user.comments)} || deleted reviews : {len(user.reviews)}"
