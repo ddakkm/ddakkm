@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Union
 
 from sqlalchemy.orm import Session
 from fastapi.encoders import jsonable_encoder
@@ -64,18 +64,20 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
     def get_by_sns_id(self, db: Session, *, sns_id: str) -> Optional[User]:
         return db.query(self.model).filter(self.model.sns_id == sns_id).first()
 
-    def create_join_survey(self, db: Session, survey_in: SurveyCreate, *, user_id: int):
-        print(jsonable_encoder(survey_in))
-        # A 타입 설문지 -> 리뷰 작성과 동일한 flow
+    def create_join_survey(self, db: Session, survey_in: SurveyCreate, *, user_id: int)\
+            -> User:
+        # A 타입 설문지 -> 설문 내용을 작성 양식에 맞게 넣고, user_id 와 함께 입력 >> 빈 내용의 리뷰도 함께 생성
         if survey_in.survey_type == SurveyType.A:
             survey_create_schema = SurveyA(**jsonable_encoder(survey_in.survey_details), user_id=user_id)
-            crud.survey_a.create(db=db, obj_in=survey_create_schema)
+            survey = crud.survey_a.create(db=db, obj_in=survey_create_schema)
+            review_obj = models.Review(user_id=user_id, survey_id=survey.id, content=None)
+            crud.review.create(db=db, obj_in=review_obj)
         # B 타입 설문지 -> 설문 내용을 작성 양식에 맞게 넣고, user_id 와 함께 DB에 입력
         elif survey_in.survey_type == SurveyType.B:
             survey_create_schema = SurveyB(**jsonable_encoder(survey_in.survey_details))
             crud.survey_b.create(db=db, obj_in=models.SurveyB(data=survey_create_schema, user_id=user_id))
         # C 타입 설문지 -> 설문 내용을 작성 양식에 맞게 넣고, user_id 와 함께 DB에 입력
-        elif survey_in.survey_type == SurveyType.C:
+        else:
             survey_create_schema = SurveyC(**jsonable_encoder(survey_in.survey_details))
             crud.survey_c.create(db=db, obj_in=models.SurveyC(data=survey_create_schema, user_id=user_id))
 
@@ -85,6 +87,7 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
         db.add(db_obj)
         db.commit()
         db.refresh(db_obj)
+        return db_obj
 
 
 user = CRUDUser(User)

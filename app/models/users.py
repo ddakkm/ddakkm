@@ -41,9 +41,9 @@ class User(Base):
     agree_privacy_policy = Column(Boolean, nullable=False)
 
     # One to One
-    survey_a = relationship("SurveyA", back_populates="user", uselist=False)
-    survey_b = relationship("SurveyB", back_populates="user", uselist=False)
-    survey_c = relationship("SurveyC", back_populates="user", uselist=False)
+    survey_a = relationship("SurveyA", back_populates="user", uselist=False, join_depth=1, lazy="joined")
+    survey_b = relationship("SurveyB", back_populates="user", uselist=False, join_depth=1, lazy="joined")
+    survey_c = relationship("SurveyC", back_populates="user", uselist=False, join_depth=1, lazy="joined")
 
     # One to Many
     reviews = relationship("Review", back_populates="user", uselist=True)
