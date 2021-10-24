@@ -61,7 +61,7 @@ class ReviewResponse(ReviewBase):
     vaccine_round: str
     vaccine_type: str
     symptom: dict
-    content: str
+    content: Optional[str]
     like_count: int
     comment_count: int
     user_is_like: bool
