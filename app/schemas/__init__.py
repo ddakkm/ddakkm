@@ -5,3 +5,4 @@ from .survey import SurveyACreate, SurveyAUpdated, survey_details_example, Surve
 from .comment import CommentCreate, CommentUpdate, Comment, NestedComment
 from .token import TokenPayload
 from .page_response import PageResponse, PageResponseReviews
+from .response import BaseResponse

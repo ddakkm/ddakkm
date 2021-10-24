@@ -9,7 +9,18 @@ from app import crud, schemas, models
 router = APIRouter()
 
 
-# TODO: ADD docs
+@router.delete("", response_model=schemas.BaseResponse, deprecated=True)
+async def delete_user(
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_user)
+) -> schemas.BaseResponse:
+    """
+    <h1> 회원을 삭제합니다. 본 API는 테스트용으로만 사용합니다. </h1> </br>
+    헤더에 [ Authorization: Baerer 액세스 토큰 ]을 넣으면 해당하는 유저의 리뷰/코멘트/좋아요기록 등 모든 관련 정보가 삭제됩니다.
+    """
+    return crud.user.delete_by_user_id(db=db, user_id=current_user.id)
+
+
 @router.post("/join_survey")
 async def create_join_survey(
         *,
@@ -62,8 +73,34 @@ async def create_join_survey(
     return crud.user.create_join_survey(db=db, survey_in=survey_in, user_id=current_user.id)
 
 
-@router.get("/me")
-async def get_me(
+@router.get("/me/profile")
+async def get_my_profile(
+        *,
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_user)
+) -> Any:
+    """
+    <h1> TODO
+    </h2>
+    """
+    return
+
+
+@router.get("/me/post")
+async def get_my_posts(
+        *,
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_user)
+) -> Any:
+    """
+    <h1> TODO
+    </h2>
+    """
+    return
+
+
+@router.get("/me/comment")
+async def get_my_comments(
         *,
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_user)

@@ -4,6 +4,7 @@ from pydantic import BaseModel
 
 from app.models.users import Gender, JoinSurveyCode, SnsProviderType
 
+
 class LoginResponse(BaseModel):
     is_user: bool
     access_token: Optional[str]

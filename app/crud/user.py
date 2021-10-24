@@ -1,3 +1,4 @@
+import copy
 from typing import Optional, Union
 
 from sqlalchemy.orm import Session
@@ -9,6 +10,7 @@ from app.crud.base import CRUDBase
 from app.models.users import User, JoinSurveyCode, SnsProviderType
 from app.schemas.user import UserCreate, UserUpdate, SNSUserCreate, OauthIn
 from app.schemas.survey import SurveyType, SurveyCreate, SurveyA, SurveyB, SurveyC
+from app.schemas.response import BaseResponse
 from app.utils.user import nickname_randomizer
 
 
@@ -64,7 +66,7 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
     def get_by_sns_id(self, db: Session, *, sns_id: str) -> Optional[User]:
         return db.query(self.model).filter(self.model.sns_id == sns_id).first()
 
-    def create_join_survey(self, db: Session, survey_in: SurveyCreate, *, user_id: int)\
+    def create_join_survey(self, db: Session, survey_in: SurveyCreate, *, user_id: int) \
             -> User:
         # A 타입 설문지 -> 설문 내용을 작성 양식에 맞게 넣고, user_id 와 함께 입력 >> 빈 내용의 리뷰도 함께 생성
         if survey_in.survey_type == SurveyType.A:
@@ -88,6 +90,24 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
         db.commit()
         db.refresh(db_obj)
         return db_obj
+
+    def delete_by_user_id(self, db: Session, *, user_id: str) -> BaseResponse:
+        user = db.query(self.model).filter(self.model.id == user_id).first()
+        message = f"user from {user.sns_provider} | user_id: {user_id} \n is deleted" \
+                  f"deleted comment : {len(user.comments)} || deleted reviews : {len(user.reviews)}"
+        try:
+            db.query(models.Comment).filter(models.Comment.user_id == user_id).delete()
+            db.query(models.Review).filter(models.Review.user_id == user_id).delete()
+            db.query(models.SurveyA).filter(models.SurveyA.user_id == user_id).delete()
+            db.query(models.SurveyB).filter(models.SurveyB.user_id == user_id).delete()
+            db.query(models.SurveyC).filter(models.SurveyC.user_id == user_id).delete()
+            db.query(models.UserLike).filter(models.UserLike.user_id == user_id).delete()
+            db.query(models.UserTag).filter(models.UserTag.user_id == user_id).delete()
+            db.delete(user)
+            db.commit()
+            return BaseResponse(status="ok", message=message)
+        except Exception as e:
+            return BaseResponse(status="failed", error=str(e))
 
 
 user = CRUDUser(User)
