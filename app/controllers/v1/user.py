@@ -102,7 +102,7 @@ async def get_my_profile(
 
     else:
         vaccine_status = schemas.VaccineStatus(join_survey_code=user.join_survey_code)
-    return schemas.UserProfileResponse(vaccine_status=vaccine_status,
+    return schemas.UserProfileResponse(vaccine_status=vaccine_status, character_image=user.character_image,
                                        post_counts=post_counts, comment_counts=comment_counts, like_counts=like_counts)
 
 

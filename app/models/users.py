@@ -37,8 +37,8 @@ class User(Base):
     gender = Column(Enum(Gender), default=Gender.ETC)
     age = Column(Integer, default=1980)
     join_survey_code = Column(Enum(JoinSurveyCode), default=JoinSurveyCode.NONE)
-    agree_over_fourteen = Column(Boolean, nullable=False)
-    agree_privacy_policy = Column(Boolean, nullable=False)
+    agree_policy = Column(Boolean, nullable=False)
+    character_image = Column(String(100))
 
     # One to One
     survey_a = relationship("SurveyA", back_populates="user", uselist=False, join_depth=1, lazy="joined")

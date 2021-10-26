@@ -84,7 +84,7 @@ async def get_reviews(
         nickname=review.user.nickname,
         vaccine_round=review.survey.vaccine_round,
         vaccine_type=review.survey.vaccine_type,
-        # TODO 증상 리턴 모델 수정
+        # TODO 증상 리턴 모델 수정 (복수선택 답변이 자유입력값만 있으면 랜덤 후보에 포함 X)
         symptom=symtom_randomizer(review.survey.data),
         content=review.content,
         like_count=review.like_count,
@@ -169,7 +169,7 @@ async def get_review_details(
     |nickname|string|작성자의 닉네임|
     |content|string|댓글 내용|
     |nested_comment|list of objects|댓글의 댓글 리스트|
-    <h2> TODO : 태그 관련 기능
+    <h2> TODO : 태그 관련 기능 / 댓글에 업로드시간
     </h3>
     """
     # 비회원인 경우 id 값이 없기 때문에, 작성자인지 여부를 판별할 수 없음 -> 이에 따라 임시 orm 모델로 변환시켜줌
@@ -224,6 +224,7 @@ async def delete_review(
 
 
 # TODO : 백그라운드 테스크 celery 로 변경
+# TODO : 신고 사유 받아야함
 @router.post("/{review_id}/report")
 async def report_review(
         review_id: int,
@@ -239,7 +240,7 @@ async def report_review(
     </br>
     파라미터로 넘어온 리뷰 id 에 해당하는 리뷰가 존재하지 않는 경우, 404에러를 반환합니다. (성공시 200) </br>
     <h2>
-    TODO: 삭제한 리뷰 신고 못하게
+    TODO: 삭제한 리뷰 신고 못하게 / 신고 사유 추가
     </h2>
     """
     subject = f"[ddakkm 리뷰 신고] 게시글 ID {review_id}"

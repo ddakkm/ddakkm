@@ -11,7 +11,7 @@ from app.models.users import User, JoinSurveyCode, SnsProviderType
 from app.schemas.user import UserCreate, UserUpdate, SNSUserCreate, OauthIn
 from app.schemas.survey import SurveyType, SurveyCreate, SurveyA, SurveyB, SurveyC
 from app.schemas.response import BaseResponse
-from app.utils.user import nickname_randomizer
+from app.utils.user import nickname_randomizer, character_image_randomizer
 
 
 class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
@@ -44,8 +44,8 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
             age=obj_in.age,
             nickname=nickname_randomizer(),
             sns_id=sns_id,
-            agree_privacy_policy=obj_in.agree_privacy_policy,
-            agree_over_fourteen=obj_in.agree_over_fourteen
+            agree_policy=obj_in.agree_policy,
+            character_image=character_image_randomizer()
         )
         db.add(db_obj)
         db.commit()

@@ -23,8 +23,7 @@ class UserUpdate(UserBase):
 
 
 class SNSUserCreate(UserBase):
-    agree_over_fourteen: bool = True
-    agree_privacy_policy: bool = True
+    agree_policy: bool = True
 
 
 class SNSUserUpdate(UserBase):
@@ -52,6 +51,7 @@ class VaccineStatus(BaseModel):
 
 class UserProfileResponse(BaseModel):
     vaccine_status: VaccineStatus
+    character_image: str
     post_counts: int = 0
     comment_counts: int = 0
     like_counts: int = 0

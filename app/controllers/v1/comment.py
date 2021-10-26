@@ -43,6 +43,7 @@ async def delete_comment(
 
 
 # TODO : 백그라운드 테스크 celery 로 변경
+# TODO : 신고사유 추가
 @router.post("/{comment_id}/report")
 async def report_comment(
         comment_id: int,

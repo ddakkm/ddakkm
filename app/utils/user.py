@@ -8,7 +8,7 @@ from app.db.session import SessionLocal
 from app.models.users import NicknameCounter
 
 nicknames = []
-
+character_images = ["koala", "panda", "lion", "tiger", "fox", "rabbit", "bear", "dog", "cat"]
 
 def open_nickname_csv(file_path: str) -> list:
     with open(file_path, 'r') as csv_file:
@@ -61,6 +61,11 @@ def nickname_randomizer(db: Session = SessionLocal()):
         db.close()
 
 
+def character_image_randomizer() -> str:
+    i = random.randrange(len(character_images))
+    return character_images[i]
+
+
 def calculate_birth_year_from_age(age: int) -> int:
     birth_age = datetime.now().year - age + 1
     return birth_age
@@ -69,4 +74,5 @@ def calculate_birth_year_from_age(age: int) -> int:
 # for debugging
 if __name__ == "__main__":
     # print(nickname_randomizer())
-    print(calculate_birth_year_from_age(28))
+    # print(calculate_birth_year_from_age(28))
+    print(character_image_randomizer())

@@ -22,6 +22,7 @@ class CreateSnsResponse(BaseModel):
     sns_provider: SnsProviderType
     nickname: str
     access_token: str
+    character_image: str
 
     class Config:
         orm_mode = True
