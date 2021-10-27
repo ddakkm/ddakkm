@@ -78,6 +78,7 @@ async def get_reviews(
         user_like_list = []
 
     query = crud.review.get_list_paginated(db, page_request, filters)
+
     review_list = [schemas.ReviewResponse(
         id=review.id,
         images=review.images,
