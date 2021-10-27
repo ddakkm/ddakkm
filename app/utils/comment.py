@@ -10,25 +10,35 @@ from app.schemas import NestedComment
 
 
 def comment_model_to_dto(comment_models: List[CommentModel]) -> List[CommentDto]:
-    # TODO O(N^2) 말고 다른 방법 없나
-    comment_dtos = [
+    # Nested Comment / Comment 분리
+    comment_dto = [
         CommentDto(
             id=comment.id,
             user_id=comment.user_id,
             nickname=comment.user.nickname,
             content=comment.content,
             created_at=comment.created_at,
+            is_delete=comment.is_delete,
             nested_comment=[NestedComment(
                 id=nested_comment.id,
                 user_id=nested_comment.user_id,
                 nickname=nested_comment.user.nickname,
                 content=nested_comment.content,
-                created_at=nested_comment.created_at
-            )
-                for nested_comment in comment_models if nested_comment.parent_id == comment.id]
-        ) for comment in comment_models if comment.parent_id is None
+                created_at=nested_comment.created_at,
+                is_delete=nested_comment.is_delete)
+                for nested_comment in comment_models if nested_comment.parent_id == comment.id])
+        for comment in comment_models if comment.parent_id is None
     ]
-    return comment_dtos
+    for comment in comment_dto:
+        if comment.is_delete is True:
+            comment.nickname = "삭제됨"
+            comment.content = "삭제됨"
+        for nested in comment.nested_comment:
+            if nested.is_delete is True:
+                nested.nickname = "삭제됨"
+                nested.content = "삭제됨"
+
+    return comment_dto
 
 
 if __name__ == "__main__":

@@ -21,6 +21,7 @@ class NestedComment(CommentBase):
     user_id: int
     nickname: str
     created_at: datetime
+    is_delete: bool
 
 
 class Comment(CommentBase):
@@ -29,6 +30,7 @@ class Comment(CommentBase):
     nickname: str
     created_at: datetime
     nested_comment: Optional[List[NestedComment]]
+    is_delete: bool
 
     class Config:
         orm_mode = True
