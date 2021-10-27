@@ -11,7 +11,7 @@ from app.schemas.comment import CommentCreate, CommentUpdate
 
 class CRUDComment(CRUDBase[Comment, CommentCreate, CommentUpdate]):
     def get_comment(self, db: Session, id: int) -> Comment:
-        comment_obj = db.query(self.model).filter(self.model.id == id).filter(self.model.is_delete == False).first()
+        comment_obj = db.query(self.model).filter(self.model.id == id).first()
         if comment_obj is None:
             raise HTTPException(404, "댓글을 찾을 수 없습니다.")
         return comment_obj
