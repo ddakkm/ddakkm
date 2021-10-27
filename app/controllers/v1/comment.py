@@ -1,6 +1,6 @@
 from pydantic import EmailStr
 from sqlalchemy.orm import Session
-from fastapi import APIRouter, Depends, BackgroundTasks
+from fastapi import APIRouter, Depends, BackgroundTasks, HTTPException
 
 from app import crud, schemas, models
 from app.core.config import settings
@@ -40,6 +40,8 @@ async def delete_comment(
     Path Parameter 로 입력된 코멘트가 없는 경우 404 에러를 반환합니다.
     """
     db_obj = crud.comment.get_comment(db, comment_id)
+    if db_obj.is_delete is True:
+        raise HTTPException(400, "이미 삭제된 코멘트입니다.")
     return crud.comment.set_comment_status_as_deleted(db, db_obj=db_obj, current_user=current_user)
 
 

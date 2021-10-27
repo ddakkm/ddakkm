@@ -11,7 +11,7 @@ from app.schemas.comment import CommentCreate, CommentUpdate
 
 class CRUDComment(CRUDBase[Comment, CommentCreate, CommentUpdate]):
     def get_comment(self, db: Session, id: int) -> Comment:
-        comment_obj = db.query(self.model).filter(self.model.id == id).filter(self.model.is_delete == False).first()
+        comment_obj = db.query(self.model).filter(self.model.id == id).first()
         if comment_obj is None:
             raise HTTPException(404, "댓글을 찾을 수 없습니다.")
         return comment_obj
@@ -32,8 +32,9 @@ class CRUDComment(CRUDBase[Comment, CommentCreate, CommentUpdate]):
     def create_nested_comment(self, db: Session, *,
                               obj_in: CommentCreate, current_user: User, comment_id: int) -> Comment:
         comment_obj = self.get_comment(db, id=comment_id)
+        if comment_obj.is_delete is True:
+            raise HTTPException(400, "이미 삭제된 댓글입니다.")
         review_id = comment_obj.review_id
-
         db_obj = self.model(
             user_id=current_user.id,
             review_id=review_id,
