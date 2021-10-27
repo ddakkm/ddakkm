@@ -11,7 +11,7 @@ from app.core.config import settings
 from app.controllers import deps
 from app.utils.smpt import email_sender
 from app.utils.comment import comment_model_to_dto
-from app.utils.review import symtom_randomizer
+from app.utils.review import symtom_randomizer, check_is_deleted
 from app.utils.storage import s3_client
 from app.utils.report import get_report_reason
 from app import crud, schemas, models
@@ -200,10 +200,9 @@ async def edit_review(
 ) -> models.Review:
     """
     <h1> 사용자가 게시한 리뷰를 수정합니다. </h1> </br>
-    <h2> TODO : 삭제한 리뷰 수정 못하게
-    </h2>
     """
     db_obj = crud.review.get_review(db, id=review_id)
+    check_is_deleted(db_obj)
     return crud.review.update_review(db, db_obj=db_obj, obj_in=review_in, current_user=current_user)
 
 
@@ -217,15 +216,13 @@ async def delete_review(
     <h1> 게시글의 상태를 삭제됨으로 변경합니다.</h1> </br>
     삭제 상태의 게시글은 리스트에 표현되지 않으며, 상세 정보 조회가 불가능합니다.
     슈퍼 유저는 본인이 작성한 게시글이 아니어도 삭제할 수 있습니다. </br>
-    <h2> TODO: 이미 삭제된 리뷰인 경우 반환값 조정 필요
-    </h2>
     """
     db_obj = crud.review.get_review(db, id=review_id)
+    check_is_deleted(db_obj)
     return crud.review.set_review_status_as_deleted(db, db_obj=db_obj, current_user=current_user)
 
 
 # TODO : 백그라운드 테스크 celery 로 변경
-# TODO : 신고 사유 받아야함
 @router.post("/{review_id}/report")
 async def report_review(
         review_id: int,
@@ -248,13 +245,12 @@ async def report_review(
     </br>
     </br>
     파라미터로 넘어온 리뷰 id 에 해당하는 리뷰가 존재하지 않는 경우, 404에러를 반환합니다. (성공시 200) </br>
-    <h2>
-    TODO: 삭제한 리뷰 신고 못하게
-    </h2>
     """
+    review = crud.review.get_review(db, review_id)
+    check_is_deleted(review)
+    review_content = review.content
     report_reason = get_report_reason(reason.reason)
     subject = f"[ddakkm 리뷰 신고] 게시글 ID {review_id}"
-    review_content = crud.review.get_review(db, review_id).content
     text = f"""
     신고 게시글 내용: {review_content}
     신고자_ID: {current_user.id}
@@ -277,9 +273,6 @@ async def create_comment(
     </br>
     댓글 내용은 {"content": "댓글 내용"} <- 형식의 json Body로 받고,  </br>
     글을 작성하고자 하는 review_id 를 Path Parameter 로 받습니다. </br>
-    <h2>
-    TODO: 삭제한 리뷰 댓글 못달게
-    </h2>
     """
     return crud.comment.create_by_current_user(db, obj_in=comment_in, current_user=current_user, review_id=review_id)
 

@@ -1,9 +1,11 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 
+from app import crud
 from app.crud.base import CRUDBase
 from app.models.users import User
 from app.models.comments import Comment
+from app.utils.review import check_is_deleted
 from app.schemas.comment import CommentCreate, CommentUpdate
 
 
@@ -14,12 +16,14 @@ class CRUDComment(CRUDBase[Comment, CommentCreate, CommentUpdate]):
             raise HTTPException(404, "댓글을 찾을 수 없습니다.")
         return comment_obj
 
-    def create_by_current_user(self, db: Session, *, obj_in: CommentCreate, current_user: User, review_id) -> Comment:
+    def create_by_current_user(self, db: Session, *, obj_in: CommentCreate, current_user: User, review_id: int) -> Comment:
         db_obj = self.model(
             user_id=current_user.id,
             review_id=review_id,
             content=obj_in.content
         )
+        review = crud.review.get_review(db=db, id=review_id)
+        check_is_deleted(review)
         db.add(db_obj)
         db.commit()
         db.refresh(db_obj)

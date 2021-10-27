@@ -96,7 +96,7 @@ class CRUDReview(CRUDBase[Review, ReviewCreate, ReviewUpdate]):
             lambda x: x.order_by(self.model.id.desc()).limit(size).offset((page - 1) * size).all()
         )
 
-    def get_review(self, db: Session, id: int) -> str:
+    def get_review(self, db: Session, id: int) -> Review:
         review_obj = db.query(self.model).filter(self.model.id == id).first()
         if review_obj is None:
             raise HTTPException(404, "리뷰를 찾을 수 없습니다.")
