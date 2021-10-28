@@ -102,7 +102,7 @@ async def get_my_profile(
 
     else:
         vaccine_status = schemas.VaccineStatus(join_survey_code=user.join_survey_code)
-    return schemas.UserProfileResponse(vaccine_status=vaccine_status, character_image=user.character_image,
+    return schemas.UserProfileResponse(vaccine_status=vaccine_status, character_image=user.character_image, nickname=user.nickname,
                                        post_counts=post_counts, comment_counts=comment_counts, like_counts=like_counts)
 
 
@@ -116,7 +116,18 @@ async def get_my_posts(
     <h1> TODO
     </h2>
     """
-    return
+    user_reviews_model = crud.review.get_reviews_by_user_id(db=db, user_id=current_user.id)
+    user_reviews = [schemas.UserPostResponse(
+        id=review.id,
+        nickname=review.user.nickname,
+        like_count=len(review.user_like),
+        comment_count=len(review.comments),
+        vaccine_status=schemas.VaccineStatus(join_survey_code=None,
+                                             details={"vaccine_round": review.survey.vaccine_round,
+                                                      "vaccine_type": review.survey.vaccine_type,
+                                                      "is_crossed": review.survey.is_crossed}),
+        created_at=review.created_at) for review in user_reviews_model]
+    return user_reviews
 
 
 @router.get("/me/comment")

@@ -86,7 +86,6 @@ async def get_reviews(
         nickname=review.user.nickname,
         vaccine_round=review.survey.vaccine_round,
         vaccine_type=review.survey.vaccine_type,
-        # TODO 증상 리턴 모델 수정 (복수선택 답변이 자유입력값만 있으면 랜덤 후보에 포함 X)
         symptom=symtom_randomizer(review.survey.data),
         content=review.content,
         like_count=review.like_count,
@@ -172,7 +171,9 @@ async def get_review_details(
     |content|string|댓글 내용|
     |nested_comment|list of objects|댓글의 댓글 리스트|
     <h2> TODO : 태그 관련 기능
-    </h3>
+    </h2>
+    <h2> TODO : 댓글 Object에 댓글 좋아요 (like_count) 속성을 추가할 예정입니다.
+    </h2>
     """
     # 비회원인 경우 id 값이 없기 때문에, 작성자인지 여부를 판별할 수 없음 -> 이에 따라 임시 orm 모델로 변환시켜줌
     if current_user is None:
@@ -294,3 +295,6 @@ async def change_review_like_status(
     <h2>_PS. 빠르게 만들기 위해 하나의 API로 좋아요/좋아요 취소를 모두 처리하도록 했습니다. 혹시 클라에서 분기가 불편해지거나 하면 말해주세요 그냥 2개로 나눌께요_</h2>
     """
     return crud.user_like.change_user_like_review_status(db, current_user=current_user, review_id=review_id)
+
+# TODO 댓글 좋아요 API
+# TODO 게시글 리턴 모델에 댓글 좋아요 수 추가

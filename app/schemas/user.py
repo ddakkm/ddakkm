@@ -1,4 +1,5 @@
 from typing import Optional
+from datetime import datetime
 
 from pydantic import BaseModel, EmailStr
 
@@ -45,7 +46,7 @@ class User(UserBase):
 
 
 class VaccineStatus(BaseModel):
-    join_survey_code: JoinSurveyCode
+    join_survey_code: Optional[JoinSurveyCode]
     details: Optional[dict]
 
 
@@ -55,3 +56,13 @@ class UserProfileResponse(BaseModel):
     post_counts: int = 0
     comment_counts: int = 0
     like_counts: int = 0
+    nickname: str
+
+
+class UserPostResponse(BaseModel):
+    id: int
+    nickname: str
+    like_count: int = 0
+    comment_count: int = 0
+    created_at: datetime
+    vaccine_status: VaccineStatus
