@@ -113,8 +113,13 @@ async def get_my_posts(
         current_user: models.User = Depends(deps.get_current_user)
 ) -> Any:
     """
-    <h1> TODO
-    </h2>
+    <h1> 내가 올린 후기들의 리스트를 불러옵니다. </h1>
+    2회차-화이자-교차접종 /// 1회차-모더나 /// 등등의 제목을 만들기 위해 "vaccine_status"라는 Object를 줍니다. </br>
+    </br>
+    이 "vaccine_status"라는 Object는 회원 프로필을 가져오는 API __([GET] /v1/user/me/profile)에서 사용되는 "vaccine_status"와 동일__합니다. </br>
+    __다만__ 회원 프로필을 가져오는 API에서는 회원들이 입력한 survey_code가 다양할 수 있기 때문에 "vaccine_status" object의 "join_survey_code" 값이
+    A, B, C, null 중 하나이지만, </br>
+    __본 API에서는__ 모든 후기가 "A" 타입의 survey이며, join_survey도 아니기 때문에 해당 값은 항상 null 입니다.
     """
     user_reviews_model = crud.review.get_reviews_by_user_id(db=db, user_id=current_user.id)
     user_reviews = [schemas.UserPostResponse(
