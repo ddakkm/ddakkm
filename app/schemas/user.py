@@ -59,7 +59,7 @@ class UserProfileResponse(BaseModel):
     nickname: str
 
 
-class UserPostResponse(BaseModel):
+class UserProfilePostResponse(BaseModel):
     id: int
     nickname: str
     like_count: int = 0

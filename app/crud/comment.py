@@ -1,7 +1,9 @@
-from sqlalchemy.orm import Session
+from typing import List
+
+from sqlalchemy.orm import Session, joinedload
 from fastapi import HTTPException
 
-from app import crud
+from app import crud, models
 from app.crud.base import CRUDBase
 from app.models.users import User
 from app.models.comments import Comment
@@ -57,6 +59,11 @@ class CRUDComment(CRUDBase[Comment, CommentCreate, CommentUpdate]):
             return db_obj
         else:
             raise HTTPException(401, "이 게시글을 수정할 권한이 없습니다.")
+
+    def get_review_id_by_comment_user_id(self, db: Session, user_id: int):
+        result = db.query(self.model.review_id).\
+            filter(self.model.user_id == user_id).group_by(self.model.review_id).all()
+        return result
 
     def get_comment_counts_by_user_id(self, db: Session, user_id: int) -> int:
         counts = db.query(self.model).filter(self.model.user_id == user_id).count()

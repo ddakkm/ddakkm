@@ -1,7 +1,8 @@
-from typing import Any, Union
+from typing import Any, List
 
 from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends, Body, HTTPException
+from fastapi.encoders import jsonable_encoder
 
 from app.controllers import deps
 from app import crud, schemas, models
@@ -106,7 +107,7 @@ async def get_my_profile(
                                        post_counts=post_counts, comment_counts=comment_counts, like_counts=like_counts)
 
 
-@router.get("/me/post")
+@router.get("/me/post", response_model=List[schemas.UserProfilePostResponse])
 async def get_my_posts(
         *,
         db: Session = Depends(deps.get_db),
@@ -122,30 +123,55 @@ async def get_my_posts(
     __본 API에서는__ 모든 후기가 "A" 타입의 survey이며, join_survey도 아니기 때문에 해당 값은 항상 null 입니다.
     """
     user_reviews_model = crud.review.get_reviews_by_user_id(db=db, user_id=current_user.id)
-    user_reviews = [schemas.UserPostResponse(
+    user_reviews = [schemas.UserProfilePostResponse(
         id=review.id,
         nickname=review.user.nickname,
         like_count=len(review.user_like),
         comment_count=len(review.comments),
+        created_at=review.created_at,
         vaccine_status=schemas.VaccineStatus(join_survey_code=None,
                                              details={"vaccine_round": review.survey.vaccine_round,
                                                       "vaccine_type": review.survey.vaccine_type,
                                                       "is_crossed": review.survey.is_crossed}),
-        created_at=review.created_at) for review in user_reviews_model]
+        ) for review in user_reviews_model]
     return user_reviews
 
 
-@router.get("/me/comment")
+@router.get("/me/comment", response_model=List[schemas.UserProfilePostResponse])
 async def get_my_comments(
         *,
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_user)
 ) -> Any:
     """
-    <h1> TODO
-    </h2>
+    <h1> 내가 댓글 단 후기들의 리스트를 불러옵니다. </h1>
+    2회차-화이자-교차접종 /// 1회차-모더나 /// 등등의 제목을 만들기 위해 "vaccine_status"라는 Object를 줍니다. </br>
+    </br>
+    이 "vaccine_status"라는 Object는 회원 프로필을 가져오는 API __([GET] /v1/user/me/profile)에서 사용되는 "vaccine_status"와 동일__합니다. </br>
+    __다만__ 회원 프로필을 가져오는 API에서는 회원들이 입력한 survey_code가 다양할 수 있기 때문에 "vaccine_status" object의 "join_survey_code" 값이
+    A, B, C, null 중 하나이지만, </br>
+    __본 API에서는__ 모든 후기가 "A" 타입의 survey이며, join_survey도 아니기 때문에 해당 값은 항상 null 입니다.
+    <h2> TODO "created_at" 파라미터가 현재는 리뷰 작성시간으로 리턴됨 -> 댓글 작성시간으로 변경해야함
+    <h2>
     """
-    return
+    # 유저가 작성한 리뷰의 id 리스트를 가져온다.
+    review_ids_comment_written_by_user = [
+        jsonable_encoder(review_id).get("review_id")
+        for review_id in crud.comment.get_review_id_by_comment_user_id(db=db, user_id=current_user.id)
+    ]
+    reviews_model = crud.review.get_reviews_by_ids(db=db, ids=review_ids_comment_written_by_user)
+    reviews = [schemas.UserProfilePostResponse(
+        id=review.id,
+        nickname=review.user.nickname,
+        like_count=len(review.user_like),
+        comment_count=len(review.comments),
+        created_at=review.created_at,
+        vaccine_status=schemas.VaccineStatus(join_survey_code=None,
+                                             details={"vaccine_round": review.survey.vaccine_round,
+                                                      "vaccine_type": review.survey.vaccine_type,
+                                                      "is_crossed": review.survey.is_crossed}),
+        ) for review in reviews_model]
+    return reviews
 
 
 @router.get("/{user_id}")

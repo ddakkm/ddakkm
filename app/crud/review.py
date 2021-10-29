@@ -142,6 +142,10 @@ class CRUDReview(CRUDBase[Review, ReviewCreate, ReviewUpdate]):
         result = db.query(self.model).filter(self.model.user_id == user_id).all()
         return result
 
+    def get_reviews_by_ids(self, db: Session, ids: List[int]) -> List[Review]:
+        result = db.query(self.model).filter(self.model.id.in_(ids)).all()
+        return result
+
     def get_review_counts_by_user_id(self, db: Session, user_id: int) -> int:
         counts = db.query(self.model).filter(self.model.user_id == user_id).count()
         return counts
