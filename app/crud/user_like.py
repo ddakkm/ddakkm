@@ -45,5 +45,10 @@ class CRUDUserLike(CRUDBase[UserLike, UserCreate, UserUpdate]):
         counts = db.query(self.model).filter(self.model.user_id == user_id).count()
         return counts
 
+    def get_review_id_by_user_id(self, db: Session, user_id: int):
+        result = db.query(self.model.review_id).\
+            filter(self.model.user_id == user_id).group_by(self.model.review_id).all()
+        return result
+
 
 user_like = CRUDUserLike(UserLike)

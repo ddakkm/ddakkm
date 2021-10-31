@@ -155,11 +155,11 @@ async def get_my_comments(
     <h2>
     """
     # 유저가 작성한 리뷰의 id 리스트를 가져온다.
-    review_ids_comment_written_by_user = [
+    review_ids_comment_by_user = [
         jsonable_encoder(review_id).get("review_id")
         for review_id in crud.comment.get_review_id_by_comment_user_id(db=db, user_id=current_user.id)
     ]
-    reviews_model = crud.review.get_reviews_by_ids(db=db, ids=review_ids_comment_written_by_user)
+    reviews_model = crud.review.get_reviews_by_ids(db=db, ids=review_ids_comment_by_user)
     reviews = [schemas.UserProfilePostResponse(
         id=review.id,
         nickname=review.user.nickname,
@@ -174,16 +174,33 @@ async def get_my_comments(
     return reviews
 
 
-@router.get("/{user_id}")
+@router.get("/me/like")
 async def get_user_info(
         *,
         db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_user)
 ) -> Any:
     """
     <h1> TODO
     </h2>
     """
-    return
+    review_ids_like_by_user = [
+        jsonable_encoder(review_id).get("review_id")
+        for review_id in crud.user_like.get_review_id_by_user_id(db=db, user_id=current_user.id)
+    ]
+    reviews_model = crud.review.get_reviews_by_ids(db=db, ids=review_ids_like_by_user)
+    reviews = [schemas.UserProfilePostResponse(
+        id=review.id,
+        nickname=review.user.nickname,
+        like_count=len(review.user_like),
+        comment_count=len(review.comments),
+        created_at=review.created_at,
+        vaccine_status=schemas.VaccineStatus(join_survey_code=None,
+                                             details={"vaccine_round": review.survey.vaccine_round,
+                                                      "vaccine_type": review.survey.vaccine_type,
+                                                      "is_crossed": review.survey.is_crossed}),
+        ) for review in reviews_model]
+    return reviews
 
 
 @router.post("/keyword")
