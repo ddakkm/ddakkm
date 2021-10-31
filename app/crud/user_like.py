@@ -16,22 +16,21 @@ class CRUDUserLike(CRUDBase[UserLike, UserCreate, UserUpdate]):
 
         # 이미 좋아요 한 상태면 좋아요 기록 삭제
         check_like = db.query(self.model).\
-                filter(self.model.user_id == current_user.id).filter(self.model.review_id == review_id).first()
-        review_obj = crud.review.get_review(db, id=review_id)
+            filter(self.model.user_id == current_user.id).filter(self.model.review_id == review_id).first()
         if check_like:
             db.delete(check_like)
-            review_obj.like_count -= 1
-            db.add(review_obj)
+            review.like_count -= 1
+            db.add(review)
             db.commit()
-            db.refresh(review_obj)
+            db.refresh(review)
             status = {"status": "ok", "detail": f"사용자 {check_like.user_id}가 리뷰 {check_like.review_id}에 대한 좋아요를 취소했습니다."}
             return status
 
         # 좋아요 안한 상태면 좋아요 기록 생성
         else:
             db_obj = self.model(user_id=current_user.id, review_id=review_id)
-            review_obj.like_count += 1
-            db.add(review_obj)
+            review.like_count += 1
+            db.add(review)
             db.add(db_obj)
             db.commit()
             db.refresh(db_obj)

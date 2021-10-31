@@ -4,6 +4,7 @@ from sqlalchemy.orm import relationship
 from app.db.base_class import Base
 
 
+# TODO : 태그는 우선 메모리로 관리
 class UserTag(Base):
     user_id = Column(Integer, ForeignKey("user.id"), primary_key=True, index=True)
     tag_id = Column(Integer, ForeignKey("tag.id"), primary_key=True, index=True)

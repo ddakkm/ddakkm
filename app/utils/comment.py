@@ -19,13 +19,15 @@ def comment_model_to_dto(comment_models: List[CommentModel]) -> List[CommentDto]
             content=comment.content,
             created_at=comment.created_at,
             is_delete=comment.is_delete,
+            like_count=comment.like_count,
             nested_comment=[NestedComment(
                 id=nested_comment.id,
                 user_id=nested_comment.user_id,
                 nickname=nested_comment.user.nickname,
                 content=nested_comment.content,
                 created_at=nested_comment.created_at,
-                is_delete=nested_comment.is_delete)
+                is_delete=nested_comment.is_delete,
+                like_count=nested_comment.like_count)
                 for nested_comment in comment_models if nested_comment.parent_id == comment.id])
         for comment in comment_models if comment.parent_id is None
     ]

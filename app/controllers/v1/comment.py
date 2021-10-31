@@ -1,3 +1,5 @@
+from typing import Union
+
 from pydantic import EmailStr
 from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends, BackgroundTasks, HTTPException
@@ -80,3 +82,21 @@ async def report_comment(
     """
     background_task.add_task(email_sender, subject=subject, text=text, to=EmailStr(settings.SMTP_USER))
     return {"mail_subject": subject, "status": "이메일 처리 작업이 Background Worker 에게 정상적으로 전달되었습니다."}
+
+
+@router.post("/{comment_id}/like_status")
+async def change_comment_like_status(
+        comment_id: int,
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_user)
+) -> Union[models.UserCommentLike, dict]:
+    """
+    <h1> 댓글에 대한 좋아요 상태를 변경합니다. </h1> </br>
+    성공시 200 을 반환합니다. </br>
+    잘못된 Path Parameter로 요청할 경우 (= 없는 리뷰의 id로 요청할 경우) 404 에러를 반환합니다. </br>
+    좋아요를 한 회원이 본 API 를 호출하면, 좋아요가 취소됩니다. -> {"status": "ok", "details": "취소에 대한 상세 내역"} 형태의 json을 반환합니다. </br>
+    좋아요를 하지 않은 회원이 본 API 를 호출하면, 리뷰에 대한 좋아요가 등록됩니다. -> 생성된 모델을 반환 </br>
+    </br>
+    <h2>_PS. 빠르게 만들기 위해 하나의 API로 좋아요/좋아요 취소를 모두 처리하도록 했습니다. 혹시 클라에서 분기가 불편해지거나 하면 말해주세요 그냥 2개로 나눌께요_</h2>
+    """
+    return crud.user_comment_like.change_user_comment_like_status(db, current_user=current_user, comment_id=comment_id)

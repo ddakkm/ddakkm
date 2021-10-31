@@ -51,6 +51,7 @@ class User(Base):
     comments = relationship("Comment", back_populates="user", uselist=True)
 
     # Many to Many
+    user_comment_like = relationship("UserCommentLike", back_populates="user", join_depth=1)
     user_like = relationship("UserLike", back_populates="user", join_depth=1)
     user_tag = relationship("UserTag", back_populates="user", join_depth=1)
 

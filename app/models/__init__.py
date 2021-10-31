@@ -7,4 +7,5 @@ from .surveys import SurveyA, SurveyB, SurveyC
 from .tags import Tag
 from .user_like import UserLike
 from .user_tag import UserTag
+from .user_comment_like import UserCommentLike
 from .users import User, NicknameCounter, SnsProviderType, JoinSurveyCode
