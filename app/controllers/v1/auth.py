@@ -102,5 +102,3 @@ async def login_local(
         is_user=True,
         access_token=security.create_access_token(user.id, expires_delta=access_token_expires)
     )
-
-# TODO : 알림 동의 / 동의 상태 취소 (활동알림 키워드알림 나눠서)

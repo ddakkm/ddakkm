@@ -142,7 +142,7 @@ async def get_my_comments(
         *,
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_user)
-) -> Any:
+) -> List[schemas.UserProfilePostResponse]:
     """
     <h1> 내가 댓글 단 후기들의 리스트를 불러옵니다. </h1>
     2회차-화이자-교차접종 /// 1회차-모더나 /// 등등의 제목을 만들기 위해 "vaccine_status"라는 Object를 줍니다. </br>
@@ -154,7 +154,6 @@ async def get_my_comments(
     <h2> TODO "created_at" 파라미터가 현재는 리뷰 작성시간으로 리턴됨 -> 댓글 작성시간으로 변경해야함
     <h2>
     """
-    # 유저가 작성한 리뷰의 id 리스트를 가져온다.
     review_ids_comment_by_user = [
         jsonable_encoder(review_id).get("review_id")
         for review_id in crud.comment.get_review_id_by_comment_user_id(db=db, user_id=current_user.id)
@@ -179,10 +178,15 @@ async def get_user_info(
         *,
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_user)
-) -> Any:
+) -> List[schemas.UserProfilePostResponse]:
     """
-    <h1> TODO
-    </h2>
+    <h1> 내가 좋아요 한 후기들의 리스트를 불러옵니다. </h1>
+    2회차-화이자-교차접종 /// 1회차-모더나 /// 등등의 제목을 만들기 위해 "vaccine_status"라는 Object를 줍니다. </br>
+    </br>
+    이 "vaccine_status"라는 Object는 회원 프로필을 가져오는 API __([GET] /v1/user/me/profile)에서 사용되는 "vaccine_status"와 동일__합니다. </br>
+    __다만__ 회원 프로필을 가져오는 API에서는 회원들이 입력한 survey_code가 다양할 수 있기 때문에 "vaccine_status" object의 "join_survey_code" 값이
+    A, B, C, null 중 하나이지만, </br>
+    __본 API에서는__ 모든 후기가 "A" 타입의 survey이며, join_survey도 아니기 때문에 해당 값은 항상 null 입니다.
     """
     review_ids_like_by_user = [
         jsonable_encoder(review_id).get("review_id")
@@ -201,6 +205,20 @@ async def get_user_info(
                                                       "is_crossed": review.survey.is_crossed}),
         ) for review in reviews_model]
     return reviews
+
+
+@router.post("/push-status/change")
+async def change_push_status(
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_user)
+) -> models.User:
+    """
+    <h1> push 알림 수신 동의 여부를 변경합니다. </h1>
+    동의 상태의 유저가 호출하면 동의 상태를 false 로 // 비동의 상태의 유저가 호출하면 동의 상태가 true가 됩니다. </br>
+    </br>
+    ```동의 / 동의취소 따로 만들어야하면 말해주세요.```
+    """
+    return crud.user.change_user_agree_push_status(db=db, current_user=current_user)
 
 
 @router.post("/keyword")

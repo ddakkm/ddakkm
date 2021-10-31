@@ -109,5 +109,19 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
         except Exception as e:
             return BaseResponse(status="failed", error=str(e))
 
+    @staticmethod
+    def change_user_agree_push_status(db: Session, current_user: User):
+        if current_user.agree_push is False:
+            current_user.agree_push = True
+            db.add(current_user)
+            db.commit()
+            db.refresh(current_user)
+        else:
+            current_user.agree_push = False
+            db.add(current_user)
+            db.commit()
+            db.refresh(current_user)
+        return current_user
+
 
 user = CRUDUser(User)

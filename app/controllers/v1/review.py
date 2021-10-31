@@ -297,4 +297,3 @@ async def change_review_like_status(
     return crud.user_like.change_user_like_review_status(db, current_user=current_user, review_id=review_id)
 
 # TODO 댓글 좋아요 API
-# TODO 게시글 리턴 모델에 댓글 좋아요 수 추가
