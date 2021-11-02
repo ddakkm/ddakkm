@@ -76,7 +76,7 @@ async def create_join_survey(
     return crud.user.create_join_survey(db=db, survey_in=survey_in, user_id=current_user.id)
 
 
-@router.get("/push-status", response_model=schemas.PushStatusResponse, name="푸시알림 동의 여부 확인 (키워드/활동 둘다)")
+@router.get("/push", response_model=schemas.PushStatusResponse, name="푸시알림 동의 여부 확인 (키워드/활동 둘다)")
 async def get_agree_push_status(
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_user)
@@ -94,7 +94,7 @@ async def get_agree_push_status(
     )
 
 
-@router.post("/push-status/keyword", name="키워드 푸시 알림 동의 상태 변경")
+@router.post("/push/keyword", name="키워드 푸시 알림 동의 상태 변경")
 async def change_push_status(
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_user)
@@ -108,7 +108,7 @@ async def change_push_status(
     return crud.user.change_user_agree_keyword_push_status(db=db, current_user=current_user)
 
 
-@router.post("/push-status/activity", name="활동 푸시 알림 동의 상태 변경")
+@router.post("/push/activity", name="활동 푸시 알림 동의 상태 변경")
 async def change_push_status(
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_user)
