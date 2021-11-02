@@ -68,7 +68,10 @@ class UserProfilePostResponse(BaseModel):
     vaccine_status: VaccineStatus
 
 
-class UserStatusResponse(BaseModel):
-    id: int
-    agree_push: bool
+class JoinSurveyStatusResponse(BaseModel):
     done_survey: bool
+
+
+class PushStatusResponse(BaseModel):
+    agree_activity_push: bool
+    agree_keyword_push: bool

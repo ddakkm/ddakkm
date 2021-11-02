@@ -110,14 +110,28 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
             return BaseResponse(status="failed", error=str(e))
 
     @staticmethod
-    def change_user_agree_push_status(db: Session, current_user: User):
-        if current_user.agree_push is False:
-            current_user.agree_push = True
+    def change_user_agree_keyword_push_status(db: Session, current_user: User):
+        if current_user.agree_keyword_push is False:
+            current_user.agree_keyword_push = True
             db.add(current_user)
             db.commit()
             db.refresh(current_user)
         else:
-            current_user.agree_push = False
+            current_user.agree_keyword_push = False
+            db.add(current_user)
+            db.commit()
+            db.refresh(current_user)
+        return current_user
+
+    @staticmethod
+    def change_user_agree_activity_push_status(db: Session, current_user: User):
+        if current_user.agree_activity_push is False:
+            current_user.agree_activity_push = True
+            db.add(current_user)
+            db.commit()
+            db.refresh(current_user)
+        else:
+            current_user.agree_activity_push = False
             db.add(current_user)
             db.commit()
             db.refresh(current_user)
