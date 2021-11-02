@@ -22,6 +22,21 @@ async def delete_user(
     return crud.user.delete_by_user_id(db=db, user_id=current_user.id)
 
 
+@router.get("/status")
+async def get_join_survey_status(
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_user)
+) -> schemas.UserStatusResponse:
+    """
+    푸시알림수신 동의 여부 및 회원가입 설문의 상태를 리턴합니다.
+    """
+    user = crud.user.get(db=db, id=current_user.id)
+    return schemas.UserStatusResponse(
+        id=user.id,
+        agree_push=user.agree_push,
+        done_survey=user.join_survey_code != "NONE")
+
+
 @router.post("/join_survey")
 async def create_join_survey(
         *,
@@ -231,3 +246,4 @@ async def set_keyword(
     </h2>
     """
     return
+

@@ -8,7 +8,8 @@ from app.db.session import SessionLocal
 from app.models.users import NicknameCounter
 
 nicknames = []
-character_images = ["koala", "panda", "lion", "tiger", "fox", "rabbit", "bear", "dog", "cat"]
+character_images = ["koala", "panda", "lion", "tiger", "fox", "rabbit", "bear", "dog", "cat", "monkey"]
+
 
 def open_nickname_csv(file_path: str) -> list:
     with open(file_path, 'r') as csv_file:

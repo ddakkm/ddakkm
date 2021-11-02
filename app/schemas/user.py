@@ -66,3 +66,9 @@ class UserProfilePostResponse(BaseModel):
     comment_count: int = 0
     created_at: datetime
     vaccine_status: VaccineStatus
+
+
+class UserStatusResponse(BaseModel):
+    id: int
+    agree_push: bool
+    done_survey: bool
