@@ -20,6 +20,9 @@ def symtom_randomizer(symtom: dict) -> dict:
                                   q5=symtom.get("q5")))
     # q2_1 은 랜덤 증상에 포함되지 않는다.
     del(candidates["q2_1"])
+    # 답변이 문자열인 q2와 q5는 배열로 감싼다.
+    candidates["q2"] = [symtom.get("q2")]
+    candidates["q5"] = [symtom.get("q5")]
 
     # 복수 선택 가능한 항목 중 문자열 답변만 있는 경우 랜덤 증상에 포함되지 않는다.
     for candidate in list(candidates.items()):
@@ -28,8 +31,9 @@ def symtom_randomizer(symtom: dict) -> dict:
 
     # 랜덤 선택을 위해 리스트로 만들고 셔플링
     candidates_list = list(candidates.items())
+    print(candidates_list)
     random.shuffle(candidates_list)
-    return dict((candidates_list[0], candidates_list[1]))
+    return dict((tuple(candidates_list[0]), tuple(candidates_list[1])))
 
 
 def check_is_deleted(review: Review):
