@@ -1,6 +1,7 @@
 import os
 from typing import Any, Union, List, Optional
 import uuid
+import logging
 
 from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends, BackgroundTasks, File, UploadFile, HTTPException
@@ -17,6 +18,7 @@ from app.utils.report import get_report_reason
 from app import crud, schemas, models
 
 router = APIRouter()
+logger = logging.getLogger('ddakkm_logger')
 
 
 @router.post("")
@@ -78,7 +80,6 @@ async def get_reviews(
         user_like_list = []
 
     query = crud.review.get_list_paginated(db, page_request, filters)
-
     review_list = [schemas.ReviewResponse(
         id=review.id,
         images=review.images,

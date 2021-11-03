@@ -1,3 +1,6 @@
+from logging.config import dictConfig
+import logging
+
 import uvicorn
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
@@ -5,6 +8,33 @@ from starlette.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.controllers.route import api_router
 from app.utils.user import open_nickname_csv, make_nickname_list, nicknames
+
+# TODO 로깅 설정 다른곳으로 옮기기 // logger에 실제 IP 주소 넣기
+log_config = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "default": {
+            "()": "uvicorn.logging.DefaultFormatter",
+            "fmt": "%(levelprefix)s [ddakkm_api] %(asctime)s | %(message)s",
+            "datefmt": "%Y-%m-%d %H:%M:%S",
+
+        },
+    },
+    "handlers": {
+        "default": {
+            "formatter": "default",
+            "class": "logging.StreamHandler",
+            "stream": "ext://sys.stderr",
+        },
+    },
+    "loggers": {
+        "ddakkm_logger": {"handlers": ["default"], "level": "DEBUG"},
+        "sqlalchemy.engine": {"handlers": ["default"], "level": "INFO"}
+    },
+}
+dictConfig(log_config)
+
 
 app = FastAPI(
     title=settings.PROJECT_NAME, openapi_url="/openapi.json", docs_url="/openapi.admin", redoc_url=None

@@ -31,7 +31,6 @@ def symtom_randomizer(symtom: dict) -> dict:
 
     # 랜덤 선택을 위해 리스트로 만들고 셔플링
     candidates_list = list(candidates.items())
-    print(candidates_list)
     random.shuffle(candidates_list)
     return dict((tuple(candidates_list[0]), tuple(candidates_list[1])))
 
