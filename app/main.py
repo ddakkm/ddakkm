@@ -32,9 +32,8 @@ app.include_router(api_router, prefix=settings.API_V1_STR)
 @app.middleware("http")
 async def log_real_ip(request: Request, call_next):
     real_ip = request.headers.get("x-real-ip", None)
-    dst = request.headers.get("x-forwarded-for", None)
-    if real_ip and dst:
-        logger.info(f"real_ip: {real_ip} to: {dst}")
+    if real_ip:
+        logger.info(f"[{request.method.upper()}] -> {request.url} FROM : {real_ip}")
     response = await call_next(request)
     return response
 
