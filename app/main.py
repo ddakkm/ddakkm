@@ -9,7 +9,7 @@ from app.core.config import settings
 from app.controllers.route import api_router
 from app.utils.user import open_nickname_csv, make_nickname_list, nicknames
 
-# TODO 로깅 설정 다른곳으로 옮기기 // logger에 실제 IP 주소 넣기
+# TODO 로깅 설정 다른곳으로 옮기기 // logger에 실제 IP 주소 넣기 -> 미들웨어 활용??
 log_config = {
     "version": 1,
     "disable_existing_loggers": False,

@@ -185,13 +185,28 @@ async def get_my_posts(
     return user_reviews
 
 
-@router.post("/keyword")
+@router.post("/keyword", name="회원의 키워드 설정")
 async def set_keyword(
         *,
+        obj_in: schemas.UserKeywordCreate,
         db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_user)
+) -> models.UserKeyword:
+    """
+    <h1> 유저의 키워드를 설정합니다. </h1>
+    """
+    return crud.user.create_keywords(db=db, user_id=current_user.id, obj_in=obj_in)
+
+
+@router.patch("/keyword", name="회원의 키워드 수정")
+async def edit_keyword(
+        *,
+        obj_in: schemas.UserKeywordCreate,
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_user)
 ) -> Any:
     """
-    <h1> TODO
+    <h2> TODO loop 돌며, 이미 등록된 경우 pass 새로 등록된 경우 insert -> 이래야 푸시 알림에 문제 없을듯
     </h2>
     """
     return

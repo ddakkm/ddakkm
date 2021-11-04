@@ -13,7 +13,7 @@ from app.utils.smpt import email_sender
 router = APIRouter()
 
 
-@router.post("/{comment_id}")
+@router.post("/{comment_id}", name="대댓글 작성")
 async def create_nested_comment(
         comment_id: int,
         comment_in: schemas.CommentCreate,
@@ -30,7 +30,7 @@ async def create_nested_comment(
         db, obj_in=comment_in, current_user=current_user, comment_id=comment_id)
 
 
-@router.delete("/{comment_id}")
+@router.delete("/{comment_id}", name="댓글 삭제")
 async def delete_comment(
         comment_id: int,
         db: Session = Depends(deps.get_db),
@@ -48,7 +48,7 @@ async def delete_comment(
 
 
 # TODO : 백그라운드 테스크 celery 로 변경
-@router.post("/{comment_id}/report")
+@router.post("/{comment_id}/report", name="댓글 삭제")
 async def report_comment(
         comment_id: int,
         reason: schemas.ReportReason,
@@ -84,7 +84,7 @@ async def report_comment(
     return {"mail_subject": subject, "status": "이메일 처리 작업이 Background Worker 에게 정상적으로 전달되었습니다."}
 
 
-@router.post("/{comment_id}/like_status")
+@router.post("/{comment_id}/like_status", name="회원의 댓글에 대한 좋아요 상태 변경")
 async def change_comment_like_status(
         comment_id: int,
         db: Session = Depends(deps.get_db),

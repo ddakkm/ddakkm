@@ -7,8 +7,8 @@ from fastapi import HTTPException
 from app import models
 from app.crud.base import CRUDBase
 from app.crud.survey import survey_a
-from app.models.reviews import Review
-from app.models.users import User
+from app.models.reviews import Review, ReviewKeyword
+from app.models.users import User, UserKeyword
 from app.schemas.review import ReviewCreate, ReviewUpdate, ReviewParams
 from app.schemas.survey import SurveyA
 from app.schemas.page_response import paginated_query
@@ -28,8 +28,7 @@ class CRUDReview(CRUDBase[Review, ReviewCreate, ReviewUpdate]):
             content=obj_in.content,
         )
         db.add(db_obj)
-        db.commit()
-        db.refresh(db_obj)
+        db.flush()
         return db_obj
 
     def get_list_paginated(self, db: Session, page_request: dict, filters: ReviewParams) -> List[Review]:
@@ -106,6 +105,7 @@ class CRUDReview(CRUDBase[Review, ReviewCreate, ReviewUpdate]):
     def update_review(db: Session, *, db_obj: Review, obj_in: ReviewUpdate, current_user: User) -> Review:
         if db_obj.user_id != current_user.id:
             raise HTTPException(401, "이 게시글을 수정할 권한이 없습니다.")
+
         obj_data = jsonable_encoder(db_obj)
         if isinstance(obj_in, dict):
             update_data = obj_in

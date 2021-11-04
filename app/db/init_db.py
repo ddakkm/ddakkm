@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 import pymysql
 
-from app.db.base import Base, Tag   # noqa
+from app.db.base import Base   # noqa
 from app.db.session import engine, SessionLocal
 
 pymysql.install_as_MySQLdb()

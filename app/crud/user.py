@@ -1,14 +1,14 @@
-import copy
-from typing import Optional, Union
+from typing import Optional, List
 
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session
 from fastapi.encoders import jsonable_encoder
 
 from app import crud, models
 from app.core.security import get_password_hash, verify_password
 from app.crud.base import CRUDBase
-from app.models.users import User, JoinSurveyCode, SnsProviderType
+from app.models.users import User, JoinSurveyCode, SnsProviderType, UserKeyword
 from app.schemas.user import UserCreate, UserUpdate, SNSUserCreate, OauthIn
+from app.schemas.user_keyword import UserKeywordCreate
 from app.schemas.survey import SurveyType, SurveyCreate, SurveyA, SurveyB, SurveyC
 from app.schemas.response import BaseResponse
 from app.utils.user import nickname_randomizer, character_image_randomizer
@@ -102,7 +102,6 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
             db.query(models.SurveyB).filter(models.SurveyB.user_id == user_id).delete()
             db.query(models.SurveyC).filter(models.SurveyC.user_id == user_id).delete()
             db.query(models.UserLike).filter(models.UserLike.user_id == user_id).delete()
-            db.query(models.UserTag).filter(models.UserTag.user_id == user_id).delete()
             db.delete(user)
             db.commit()
             return BaseResponse(status="ok", message=message)
@@ -136,6 +135,13 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
             db.commit()
             db.refresh(current_user)
         return current_user
+
+    @staticmethod
+    def create_keywords(db: Session, obj_in: UserKeywordCreate, user_id: int) -> List[UserKeyword]:
+        db_obj = [UserKeyword(user_id=user_id, keyword=keyword) for keyword in obj_in.keywords]
+        db.bulk_save_objects(db_obj)
+        db.commit()
+        return db_obj
 
 
 user = CRUDUser(User)

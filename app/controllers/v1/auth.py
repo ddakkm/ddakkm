@@ -14,7 +14,7 @@ from app.utils.auth import generate_access_token_for_sns_user, get_sns_id
 router = APIRouter()
 
 
-@router.post("/sign-up", response_model=schemas.CreateSnsResponse)
+@router.post("/sign-up", response_model=schemas.CreateSnsResponse, name="회원가입")
 async def create_user_sns(
         *,
         db: Session = Depends(deps.get_db),
@@ -41,7 +41,7 @@ async def create_user_sns(
     return new_user
 
 
-@router.post("/login", response_model=schemas.LoginResponse)
+@router.post("/login", response_model=schemas.LoginResponse, name="로그인")
 async def login_sns(
         oauth_in: schemas.OauthIn,
         db: Session = Depends(deps.get_db)
@@ -59,7 +59,7 @@ async def login_sns(
     return generate_access_token_for_sns_user(user)
 
 
-@router.post("/sign-up/local", deprecated=True)
+@router.post("/sign-up/local", deprecated=True, name="id/pw로 회원가입 (개발테스트용)")
 async def create_user_local(
         *,
         db: Session = Depends(deps.get_db),
@@ -81,7 +81,7 @@ async def create_user_local(
     return crud.user.create_local(db, obj_in=user_in)
 
 
-@router.post("/login/local", deprecated=True)
+@router.post("/login/local", deprecated=True, name="id/pw로 로그인 (개발테스트용)")
 async def login_local(
         form_data: OAuth2PasswordRequestForm = Depends(),
         db: Session = Depends(deps.get_db)

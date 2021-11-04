@@ -21,7 +21,7 @@ router = APIRouter()
 logger = logging.getLogger('ddakkm_logger')
 
 
-@router.post("")
+@router.post("", name="리뷰 생성")
 async def create_review(
         *,
         db: Session = Depends(deps.get_db),
@@ -35,6 +35,7 @@ async def create_review(
     |파라미터|타입|내용|
     |-----|---|---|
     |images|json|이미지 url을 json 형식으로 받습니다. 본 파라미터는 Optional 파라미터로, 첨부 이미지가 없는 경우 필수값이 아닙니다. 즉, __"images": null__ 과 같이 요청해도 됩니다.</br> 이미지가 있다면 최소 한개 이미지의 url은 보내야 합니다.|
+    |keywords|list of string|태그 값을 입력 받습니다. 태그값은 다음의 구글 시트에서 참고하여 문자열 그데로 입력받습니다. [태그값 링크](https://docs.google.com/spreadsheets/d/10zEwbMWdP7f-PsNxSrAGY17noKYGPY_XngC222lNi1s/edit#gid=0/)|
     |survey|json|백신 후기 설문의 상세 내용을 받습니다.|
     |survey > survey_type|enum(string)|"A", "B", "C"|
     |survey_details > vaccine_type|enum(string)|"ETC" , "PFIZER", "AZ", "MODERNA", "JANSSEN"|
@@ -43,16 +44,16 @@ async def create_review(
     |survey_details > data > q1| 1~7 범위의 정수 + 문자열의 배열| 근육통에 대한 설문입니다. (피그마 설문A그룹참조) </br> 1~7 범위를 벗어난 정수가 배열에 있거나, 8개 이상의 인자가 배열에 있을 경우 에러를 반환합니다.|
     |survey_details > data > q2| 1~6 범위의 정수 | 발열에 대한 설문입니다. 여기서 1번을 택한 경우 발열 증상이 없다는 뜻이기 떄문에, </br> 발열 증상의 지속 기간에 대해 묻는 "q2_1" 은 빈 값을 줘야 합니다. 그렇지 않으면 에러를 반환합니다.|
     |survey_details > data > q2_1| 1~4 범위의 정수 | 발열 증상의 지속 기간에 대한 설문입니다. </br> "q2" 에서 1을 입력한 경우 이 파라미터는 비어있어야 합니다.|
-    |survey_details > data > q3~q5 |TODO|TODO|
-    </br>
-    </br>
-    <h2>TODO: 리뷰 작성시 키워드 설정하는 부분은 기획 확정되면 넣을 예정 </h2> </br>
     __자세한 내용은 하단 Schema 버튼을 눌러 참고해주세요.__
     """
-    return crud.review.create_by_current_user(db, obj_in=review_in, user_id=current_user.id)
+    review_obj = crud.review.create_by_current_user(db, obj_in=review_in, user_id=current_user.id)
+    crud.review_keyword.bulk_create(db, review_id=review_obj.id, keywords=review_in.keywords)
+    db.commit()
+    db.refresh(review_obj)
+    return review_obj
 
 
-@router.get("", response_model=schemas.PageResponseReviews)
+@router.get("", response_model=schemas.PageResponseReviews, name="리뷰 목록 가져오기")
 async def get_reviews(
         *,
         db: Session = Depends(deps.get_db),
@@ -99,7 +100,7 @@ async def get_reviews(
     )
 
 
-@router.post("/images", response_model=schemas.Images)
+@router.post("/images", response_model=schemas.Images, name="이미지 s3에 등록")
 async def create_images(
         files: List[UploadFile] = File(...),
         current_user: Union[models.User, None] = Depends(deps.get_current_user)
@@ -142,7 +143,7 @@ async def create_images(
     return uploaded_files
 
 
-@router.get("/{review_id}", response_model=schemas.Review)
+@router.get("/{review_id}", response_model=schemas.Review, name="리뷰 상세보기 (댓글과 대댓글까지)")
 async def get_review_details(
         review_id: int,
         db: Session = Depends(deps.get_db),
@@ -192,7 +193,7 @@ async def get_review_details(
     return review_details
 
 
-@router.patch("/{review_id}")
+@router.patch("/{review_id}", name="리뷰 수정")
 async def edit_review(
         review_id: int,
         review_in: schemas.ReviewUpdate,
@@ -201,13 +202,15 @@ async def edit_review(
 ) -> models.Review:
     """
     <h1> 사용자가 게시한 리뷰를 수정합니다. </h1> </br>
+    <h2> TODO : 키워드값 수정 기능
+    </h2>
     """
     db_obj = crud.review.get_review(db, id=review_id)
     check_is_deleted(db_obj)
     return crud.review.update_review(db, db_obj=db_obj, obj_in=review_in, current_user=current_user)
 
 
-@router.delete("/{review_id}")
+@router.delete("/{review_id}", name="리뷰 삭제")
 async def delete_review(
         review_id: int,
         db: Session = Depends(deps.get_db),
@@ -224,7 +227,7 @@ async def delete_review(
 
 
 # TODO : 백그라운드 테스크 celery 로 변경
-@router.post("/{review_id}/report")
+@router.post("/{review_id}/report", name="리뷰 신고")
 async def report_review(
         review_id: int,
         reason: schemas.ReportReason,
@@ -262,7 +265,7 @@ async def report_review(
     return {"mail_subject": subject, "status": "이메일 처리 작업이 Background Worker 에게 정상적으로 전달되었습니다."}
 
 
-@router.post("/{review_id}}/comment")
+@router.post("/{review_id}}/comment", name="리뷰에 댓글 작성")
 async def create_comment(
         review_id: int,
         comment_in: schemas.CommentCreate,
@@ -278,7 +281,7 @@ async def create_comment(
     return crud.comment.create_by_current_user(db, obj_in=comment_in, current_user=current_user, review_id=review_id)
 
 
-@router.post("/{review_id}/like_status")
+@router.post("/{review_id}/like_status", name="회원의 리뷰에 대한 좋아요 상태 변경")
 async def change_review_like_status(
         review_id: int,
         db: Session = Depends(deps.get_db),
