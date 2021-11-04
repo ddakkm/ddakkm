@@ -238,8 +238,6 @@ async def get_my_comments(
     __다만__ 회원 프로필을 가져오는 API에서는 회원들이 입력한 survey_code가 다양할 수 있기 때문에 "vaccine_status" object의 "join_survey_code" 값이
     A, B, C, null 중 하나이지만, </br>
     __본 API에서는__ 모든 후기가 "A" 타입의 survey이며, join_survey도 아니기 때문에 해당 값은 항상 null 입니다.
-    <h2> TODO "created_at" 파라미터가 현재는 리뷰 작성시간으로 리턴됨 -> 댓글 작성시간으로 변경해야함
-    <h2>
     """
     review_ids_comment_by_user = [
         jsonable_encoder(review_id).get("review_id")

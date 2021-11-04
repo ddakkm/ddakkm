@@ -1,40 +1,17 @@
-from logging.config import dictConfig
 import logging
+from logging.config import dictConfig
 
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from starlette.middleware.cors import CORSMiddleware
 
+from app.core.logging import log_config
 from app.core.config import settings
 from app.controllers.route import api_router
 from app.utils.user import open_nickname_csv, make_nickname_list, nicknames
 
-# TODO 로깅 설정 다른곳으로 옮기기 // logger에 실제 IP 주소 넣기 -> 미들웨어 활용??
-log_config = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "formatters": {
-        "default": {
-            "()": "uvicorn.logging.DefaultFormatter",
-            "fmt": "%(levelprefix)s [ddakkm_api] %(asctime)s | %(message)s",
-            "datefmt": "%Y-%m-%d %H:%M:%S",
-
-        },
-    },
-    "handlers": {
-        "default": {
-            "formatter": "default",
-            "class": "logging.StreamHandler",
-            "stream": "ext://sys.stderr",
-        },
-    },
-    "loggers": {
-        "ddakkm_logger": {"handlers": ["default"], "level": "DEBUG"},
-        "sqlalchemy.engine": {"handlers": ["default"], "level": "INFO"}
-    },
-}
 dictConfig(log_config)
-
+logger = logging.getLogger('ddakkm_logger')
 
 app = FastAPI(
     title=settings.PROJECT_NAME, openapi_url="/openapi.json", docs_url="/openapi.admin", redoc_url=None
@@ -50,6 +27,16 @@ if settings.BACKEND_CORS_ORIGINS:
     )
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
+
+
+@app.middleware("http")
+async def log_real_ip(request: Request, call_next):
+    real_ip = request.headers.get("x-real-ip", None)
+    dst = request.headers.get("x-forwarded-for", None)
+    if real_ip and dst:
+        logger.info(f"real_ip: {real_ip} to: {dst}")
+    response = await call_next(request)
+    return response
 
 
 @app.on_event("startup")

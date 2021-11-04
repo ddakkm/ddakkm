@@ -11,7 +11,6 @@ from app.models.reviews import Review
 #     random.shuffle(candidate_list)
 #     return {candidate_list[0]: symptom.get(candidate_list[0]), candidate_list[1]: symptom.get(candidate_list[1])}
 
-# TODO 답변 단일 스트링인 경우 배열에 감싸서 주는걸로 수정
 def symtom_randomizer(symtom: dict) -> dict:
     candidates = dict(SurveyAData(q1=symtom.get("q1"),
                                   q2=symtom.get("q2"),

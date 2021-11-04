@@ -202,7 +202,7 @@ async def edit_review(
 ) -> models.Review:
     """
     <h1> 사용자가 게시한 리뷰를 수정합니다. </h1> </br>
-    <h2> TODO : 키워드값 수정 기능
+    <h2> TODO : 키워드값 수정 기능 // review_keyword repo에서 컨트롤하면 될듯,,,
     </h2>
     """
     db_obj = crud.review.get_review(db, id=review_id)
