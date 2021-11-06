@@ -26,8 +26,10 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
             age=obj_in.age,
             nickname=nickname_randomizer(),
             sns_id="LOCAL_USER",
-            agree_privacy_policy=obj_in.agree_privacy_policy,
-            agree_over_fourteen=obj_in.agree_over_fourteen
+            agree_policy=obj_in.agree_policy,
+            character_image=character_image_randomizer(),
+            agree_keyword_push=False,
+            agree_activity_push=False,
         )
         db.add(db_obj)
         db.commit()
@@ -45,7 +47,9 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
             nickname=nickname_randomizer(),
             sns_id=sns_id,
             agree_policy=obj_in.agree_policy,
-            character_image=character_image_randomizer()
+            character_image=character_image_randomizer(),
+            agree_keyword_push=False,
+            agree_activity_push=False,
         )
         db.add(db_obj)
         db.commit()

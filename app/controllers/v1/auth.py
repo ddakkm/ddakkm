@@ -14,6 +14,13 @@ from app.utils.auth import generate_access_token_for_sns_user, get_sns_id
 router = APIRouter()
 
 
+"""
+로그인/사인업 리스폰스 모델 통일
+리스폰스 모델에 회원가입 설문여부 추가
+
+"""
+
+
 @router.post("/sign-up", response_model=schemas.CreateSnsResponse, name="회원가입")
 async def create_user_sns(
         *,

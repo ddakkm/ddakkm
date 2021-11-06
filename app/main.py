@@ -29,6 +29,7 @@ if settings.BACKEND_CORS_ORIGINS:
 app.include_router(api_router, prefix=settings.API_V1_STR)
 
 
+# 실제 IP 로깅
 @app.middleware("http")
 async def log_real_ip(request: Request, call_next):
     real_ip = request.headers.get("x-real-ip", None)

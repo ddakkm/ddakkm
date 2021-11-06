@@ -206,7 +206,9 @@ async def edit_review(
     </h2>
     """
     db_obj = crud.review.get_review(db, id=review_id)
+
     check_is_deleted(db_obj)
+    db.commit()
     return crud.review.update_review(db, db_obj=db_obj, obj_in=review_in, current_user=current_user)
 
 

@@ -14,8 +14,7 @@ class UserBase(BaseModel):
 class UserCreate(UserBase):
     password: str
     email: EmailStr = "sample@sample.com"
-    agree_over_fourteen: bool = True
-    agree_privacy_policy: bool = True
+    agree_policy: bool = True
 
 
 class UserUpdate(UserBase):
