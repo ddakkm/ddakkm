@@ -8,6 +8,7 @@ from app.models.users import Gender, JoinSurveyCode, SnsProviderType
 class LoginResponse(BaseModel):
     status: str = "OK"
     is_user: bool
+    done_survey: Optional[bool]
     access_token: Optional[str]
 
 

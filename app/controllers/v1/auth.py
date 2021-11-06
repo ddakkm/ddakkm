@@ -43,7 +43,10 @@ async def create_user_sns(
     if user_checker:
         raise HTTPException(status_code=400, detail="이미 가입된 회원입니다.")
     new_user = crud.user.create_sns(db, obj_in=user_in, oauth_in=oauth_in, sns_id=sns_id)
-    return generate_access_token_for_sns_user(new_user)
+    response = generate_access_token_for_sns_user(new_user)
+    response.status = "회원가입 성공"
+    response.done_survey = False
+    return response
 
 
 @router.post("/login", response_model=schemas.LoginResponse, name="로그인")
@@ -61,7 +64,9 @@ async def login_sns(
     """
     sns_id = get_sns_id(sns_access_token=oauth_in.sns_access_token, sns_provider=oauth_in.sns_provider)
     user = crud.user.get_by_sns_id(db=db, sns_id=sns_id)
-    return generate_access_token_for_sns_user(user)
+    response = generate_access_token_for_sns_user(user)
+    response.done_survey = user.join_survey_code != "NONE"
+    return response
 
 
 @router.post("/sign-up/local", deprecated=True, name="id/pw로 회원가입 (개발테스트용)")
