@@ -31,17 +31,17 @@ class ReviewBase(BaseModel):
     content: Optional[str] = " asdasd "
     images: Optional[Images]
 
-    # TODO validation
-    keywords: List[str] = ["심근염/심낭염"]
-
 
 # 리뷰 작성시 입력해야할 파라미터로 설문양식 A를 포함합니다.
 class ReviewCreate(ReviewBase):
     survey: SurveyACreate
+    # TODO validation
+    keywords: List[str] = ["심근염/심낭염"]
 
 
 class ReviewUpdate(ReviewBase):
-    pass
+    # TODO validation
+    keywords: List[str] = ["심근염/심낭염"]
 
 
 class Review(ReviewBase):
@@ -51,6 +51,7 @@ class Review(ReviewBase):
     user_id: int
     nickname: str
     comments: List[Comment]
+    keywords: Optional[List[str]]
 
     class Config:
         orm_mode = True

@@ -34,7 +34,7 @@ async def create_review(
     __*파라미터 설명__
     |파라미터|타입|내용|
     |-----|---|---|
-    |images|json|이미지 url을 json 형식으로 받습니다. 본 파라미터는 Optional 파라미터로, 첨부 이미지가 없는 경우 필수값이 아닙니다. 즉, __"images": null__ 과 같이 요청해도 됩니다.</br> 이미지가 있다면 최소 한개 이미지의 url은 보내야 합니다.|
+    |images|json|이미지 url을 json 형식으로 받습니다. 본 파라미터는 Optional 파라미터로, 첨부 이미지가 없는 경우 필수값이 아닙니다. 즉, __"images": null__ 과 같이 요청해도 됩니다.</br> 이미지가 있다면 최소 한개 이미지의 url은 보내야 합니다. </br> __이미지는 review/images API를 활용하여 업로드하고, url 리스트를 받을 수 있습니다.__|
     |keywords|list of string|태그 값을 입력 받습니다. 태그값은 다음의 구글 시트에서 참고하여 문자열 그데로 입력받습니다. [태그값 링크](https://docs.google.com/spreadsheets/d/10zEwbMWdP7f-PsNxSrAGY17noKYGPY_XngC222lNi1s/edit#gid=0/)|
     |survey|json|백신 후기 설문의 상세 내용을 받습니다.|
     |survey > survey_type|enum(string)|"A", "B", "C"|
@@ -60,7 +60,7 @@ async def get_reviews(
         page_request: dict = Depends(deps.get_page_request),
         filters: dict = Depends(deps.review_params),
         current_user: Union[models.User, None] = Depends(deps.get_current_user_optional)
-) -> schemas.PageResponse:
+) -> schemas.PageResponseReviews:
     """
     <h1> 메인 페이지를 위해 리뷰 리스트를 불러옵니다. </h1> </br>
     __로그인 액세스 토큰 없이(비회원도) 접근 가능한 API 입니다.__ </br> </br>
@@ -188,7 +188,8 @@ async def get_review_details(
         survey=review_obj.survey,
         is_writer=review_obj.user_id == current_user.id,
         nickname=review_obj.user.nickname,
-        comments=comment_model_to_dto(review_obj.comments)
+        comments=comment_model_to_dto(review_obj.comments),
+        keywords=[review_keyword.keyword for review_keyword in review_obj.keywords]
     )
     return review_details
 
@@ -202,14 +203,14 @@ async def edit_review(
 ) -> models.Review:
     """
     <h1> 사용자가 게시한 리뷰를 수정합니다. </h1> </br>
-    <h2> TODO : 키워드값 수정 기능 // review_keyword repo에서 컨트롤하면 될듯,,,
-    </h2>
     """
     db_obj = crud.review.get_review(db, id=review_id)
-
     check_is_deleted(db_obj)
+    updated_review = crud.review.update_review(db, db_obj=db_obj, obj_in=review_in, current_user=current_user)
+    crud.review_keyword.bulk_update(db, review_id=review_id, keywords=review_in.keywords)
     db.commit()
-    return crud.review.update_review(db, db_obj=db_obj, obj_in=review_in, current_user=current_user)
+    db.refresh(updated_review)
+    return updated_review
 
 
 @router.delete("/{review_id}", name="리뷰 삭제")
@@ -299,3 +300,10 @@ async def change_review_like_status(
     <h2>_PS. 빠르게 만들기 위해 하나의 API로 좋아요/좋아요 취소를 모두 처리하도록 했습니다. 혹시 클라에서 분기가 불편해지거나 하면 말해주세요 그냥 2개로 나눌께요_</h2>
     """
     return crud.user_like.change_user_like_review_status(db, current_user=current_user, review_id=review_id)
+
+
+@router.get("/{review_id}/sd")
+async def test(
+        review_id: int,
+        db: Session = Depends(deps.get_db)):
+    return crud.review_keyword.bulk_update(db=db, review_id=review_id, keywords=["피로감", "멍", "두근거림", "관절통", "두드러기"])
