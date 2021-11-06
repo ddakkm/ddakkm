@@ -21,13 +21,13 @@ router = APIRouter()
 """
 
 
-@router.post("/sign-up", response_model=schemas.CreateSnsResponse, name="회원가입")
+@router.post("/sign-up", response_model=schemas.LoginResponse, name="회원가입")
 async def create_user_sns(
         *,
         db: Session = Depends(deps.get_db),
         oauth_in: schemas.OauthIn,
         user_in: schemas.SNSUserCreate
-) -> models.User:
+) -> schemas.LoginResponse:
     """
     <h1>SNS 인증 서버를 통해 발급받은 SNS용 Access Token을 이용해 회원가입을 합니다. </h1> </br>
     "oauth_in" 키에는 SNS 인증정보 (SNS Provider와, SNS Access Token)를, "user_in" 키에는 회원정보 (성별과 생년)을 받습니다. </br>
@@ -38,14 +38,12 @@ async def create_user_sns(
     SNS 인증정보를 가지고 로그인 요청 > 로그인 실패 > 회원가입 요청 >
     회원가입 성공시 access_token 반환 > 회원 가입 성공의 리턴값으로 받은 access_token으로 다시 로그인 요청
     """
-    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     sns_id = get_sns_id(sns_access_token=oauth_in.sns_access_token, sns_provider=oauth_in.sns_provider)
     user_checker = crud.user.get_by_sns_id(db=db, sns_id=sns_id)
     if user_checker:
         raise HTTPException(status_code=400, detail="이미 가입된 회원입니다.")
     new_user = crud.user.create_sns(db, obj_in=user_in, oauth_in=oauth_in, sns_id=sns_id)
-    setattr(new_user, 'access_token', security.create_access_token(new_user.id, expires_delta=access_token_expires))
-    return new_user
+    return generate_access_token_for_sns_user(new_user)
 
 
 @router.post("/login", response_model=schemas.LoginResponse, name="로그인")
