@@ -195,6 +195,9 @@ async def set_keyword(
     """
     <h1> 유저의 키워드를 설정합니다. </h1>
     """
+    user_keywords = crud.user_keyword.get_keywords_by_user_id(db=db, user_id=current_user.id)
+    if len(user_keywords) > 0:
+        raise HTTPException(400, "이미 키워드를 설정하였습니다. 키워드 수정 기능을 이용해주세요")
     return crud.user.create_keywords(db=db, user_id=current_user.id, obj_in=obj_in)
 
 
@@ -206,10 +209,9 @@ async def edit_keyword(
         current_user: models.User = Depends(deps.get_current_user)
 ) -> Any:
     """
-    <h2> TODO loop 돌며, 이미 등록된 경우 pass 새로 등록된 경우 insert -> 이래야 푸시 알림에 문제 없을듯
-    </h2>
+    <h1> 유저의 키워드를 수정합니다. </h1>
     """
-    return
+    return crud.user_keyword.bulk_update(db=db, user_id=current_user.id, keywords=obj_in.keywords)
 
 
 @router.delete("", response_model=schemas.BaseResponse, deprecated=True, name="회원삭제 (개발 테스트용)")

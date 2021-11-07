@@ -1,6 +1,8 @@
 from typing import Optional, List
+from datetime import datetime
 
 from sqlalchemy.orm import Session
+from fastapi import HTTPException
 from fastapi.encoders import jsonable_encoder
 
 from app import crud, models
@@ -8,7 +10,7 @@ from app.core.security import get_password_hash, verify_password
 from app.crud.base import CRUDBase
 from app.models.users import User, JoinSurveyCode, SnsProviderType, UserKeyword
 from app.schemas.user import UserCreate, UserUpdate, SNSUserCreate, OauthIn
-from app.schemas.user_keyword import UserKeywordCreate
+from app.schemas.keyword import UserKeywordCreate
 from app.schemas.survey import SurveyType, SurveyCreate, SurveyA, SurveyB, SurveyC
 from app.schemas.response import BaseResponse
 from app.utils.user import nickname_randomizer, character_image_randomizer
@@ -61,14 +63,17 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
 
     def authentication(self, db: Session, *, email: str, password: str) -> Optional[User]:
         local_user = self.get_by_email(db, email=email)
-        if not local_user:
+        if not local_user or local_user.is_active is False:
             return None
         if not verify_password(password, local_user.hashed_password):
             return None
         return local_user
 
     def get_by_sns_id(self, db: Session, *, sns_id: str) -> Optional[User]:
-        return db.query(self.model).filter(self.model.sns_id == sns_id).first()
+        sns_user = db.query(self.model).filter(self.model.sns_id == sns_id).first()
+        if not sns_user or sns_user.is_active is False:
+            raise HTTPException(401, "입력된 정보에 해당하는 유저를 찾을 수 없습니다.")
+        return sns_user
 
     def create_join_survey(self, db: Session, survey_in: SurveyCreate, *, user_id: int) \
             -> User:
@@ -111,6 +116,16 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
             return BaseResponse(status="ok", message=message)
         except Exception as e:
             return BaseResponse(status="failed", error=str(e))
+
+    def soft_delete_by_user_id(self, db: Session, user_id: int) -> BaseResponse:
+        user = db.query(self.model).filter(self.model.id == user_id).first()
+        now = datetime.now()
+        user.is_active = False
+        user.updated_at = now
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+        return BaseResponse(message=f"유저 #{user.id}가 비활성화 되었습니다.")
 
     @staticmethod
     def change_user_agree_keyword_push_status(db: Session, current_user: User):

@@ -5,3 +5,4 @@ from .comment import comment
 from .user_like import user_like
 from .user_comment_like import user_comment_like
 from .review_keyword import review_keyword
+from .user_keyword import user_keyword

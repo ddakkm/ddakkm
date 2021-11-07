@@ -1,21 +1,17 @@
 from typing import TypeVar, List
 
-from fastapi import HTTPException
-from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from app import crud
 from app.crud.base import CRUDBase
 from app.models.reviews import ReviewKeyword
 from app.schemas.response import BaseResponse
-from app.models.users import User
+from app.schemas.keyword import ReviewKeywordUpdate
 
 CreateSchemaType = TypeVar("CreateSchemaType", bound=BaseModel)
-UpdateSchemaType = TypeVar("UpdateSchemaType", bound=BaseModel)
 
 
-class CRUDReviewKeyword(CRUDBase[ReviewKeyword, CreateSchemaType, UpdateSchemaType]):
+class CRUDReviewKeyword(CRUDBase[ReviewKeyword, CreateSchemaType, ReviewKeywordUpdate]):
     def get_keywords_by_review_id(self, db: Session, review_id: int):
         return db.query(self.model.keyword).filter(self.model.review_id == review_id).all()
 
@@ -38,7 +34,8 @@ class CRUDReviewKeyword(CRUDBase[ReviewKeyword, CreateSchemaType, UpdateSchemaTy
 
         # 추가할 키워드 -> 입력된 키워드 중 원래 기존 키워드에 없던 것
         to_insert = [keyword for keyword in keywords if keyword not in original_keywords]
-        [self.create(db=db, obj_in=self.model(review_id=review_id, keyword=keyword_to_insert)) for keyword_to_insert in to_insert]
+        [self.create(db=db, obj_in=ReviewKeywordUpdate(review_id=review_id, keyword=keyword_to_insert))
+         for keyword_to_insert in to_insert]
         db.flush()
         return BaseResponse(message=f"키워드 {len(to_delete)}개 삭제됨 : {to_delete} \n 키워드 {len(to_insert)}개 입력됨 : {to_insert}")
 

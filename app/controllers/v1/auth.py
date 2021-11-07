@@ -10,6 +10,7 @@ from app.core import security
 from app.core.config import settings
 from app.controllers import deps
 from app.utils.auth import generate_access_token_for_sns_user, get_sns_id
+from app.schemas.response import BaseResponse
 
 router = APIRouter()
 
@@ -112,3 +113,11 @@ async def login_local(
         is_user=True,
         access_token=security.create_access_token(user.id, expires_delta=access_token_expires)
     )
+
+
+@router.delete("/delete", name="회원탈퇴", response_model=BaseResponse)
+async def delete_user(
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_user)
+):
+    return crud.user.soft_delete_by_user_id(db=db, user_id=current_user.id)
