@@ -70,6 +70,18 @@ async def login_sns(
     return response
 
 
+@router.delete("/deactive", name="회원탈퇴", response_model=BaseResponse)
+async def delete_user(
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_user)
+):
+    """
+    <h1> 회원의 상태를 비활성화 상태로 변경합니다.</h1>
+    헤더에 로그인 토큰을 요청하면 해당하는 회원을 비활성화 상태로 변경합니다.
+    """
+    return crud.user.soft_delete_by_user_id(db=db, user_id=current_user.id)
+
+
 @router.post("/sign-up/local", deprecated=True, name="id/pw로 회원가입 (개발테스트용)")
 async def create_user_local(
         *,
@@ -113,11 +125,3 @@ async def login_local(
         is_user=True,
         access_token=security.create_access_token(user.id, expires_delta=access_token_expires)
     )
-
-
-@router.delete("/delete", name="회원탈퇴", response_model=BaseResponse)
-async def delete_user(
-        db: Session = Depends(deps.get_db),
-        current_user: models.User = Depends(deps.get_current_user)
-):
-    return crud.user.soft_delete_by_user_id(db=db, user_id=current_user.id)
