@@ -172,8 +172,6 @@ async def get_review_details(
     |nickname|string|작성자의 닉네임|
     |content|string|댓글 내용|
     |nested_comment|list of objects|댓글의 댓글 리스트|
-    <h2> TODO : 태그 관련 기능
-    </h2>
     """
     # 비회원인 경우 id 값이 없기 때문에, 작성자인지 여부를 판별할 수 없음 -> 이에 따라 임시 orm 모델로 변환시켜줌
     if current_user is None:

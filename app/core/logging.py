@@ -1,4 +1,3 @@
-# TODO logger에 실제 IP 주소 넣기 -> 미들웨어 활용??
 log_config = {
     "version": 1,
     "disable_existing_loggers": False,
