@@ -15,11 +15,7 @@ from app.schemas.response import BaseResponse
 router = APIRouter()
 
 
-"""
-로그인/사인업 리스폰스 모델 통일
-리스폰스 모델에 회원가입 설문여부 추가
-
-"""
+# TODO 탈퇴한 회원 리뷰 안뜨게
 
 
 @router.post("/sign-up", response_model=schemas.LoginResponse, name="회원가입")
@@ -66,7 +62,7 @@ async def login_sns(
     sns_id = get_sns_id(sns_access_token=oauth_in.sns_access_token, sns_provider=oauth_in.sns_provider)
     user = crud.user.get_by_sns_id(db=db, sns_id=sns_id)
     if user is None:
-        return schemas.LoginResponse(status="비회원", is_user=False, done_survey=False, access_token=False)
+        return schemas.LoginResponse(status="비회원", is_user=False, done_survey=False, access_token=None)
     response = generate_access_token_for_sns_user(user)
     response.done_survey = user.join_survey_code != "NONE"
     return response

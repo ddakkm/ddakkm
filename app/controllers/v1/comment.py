@@ -13,6 +13,9 @@ from app.utils.smpt import email_sender
 router = APIRouter()
 
 
+# TODO 탈퇴한 회원 댓글 안뜨게
+
+
 @router.post("/{comment_id}", name="대댓글 작성")
 async def create_nested_comment(
         comment_id: int,
