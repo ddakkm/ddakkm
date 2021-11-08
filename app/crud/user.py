@@ -71,8 +71,8 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
 
     def get_by_sns_id(self, db: Session, *, sns_id: str) -> Optional[User]:
         sns_user = db.query(self.model).filter(self.model.sns_id == sns_id).first()
-        if not sns_user or sns_user.is_active is False:
-            raise HTTPException(401, "입력된 정보에 해당하는 유저를 찾을 수 없습니다.")
+        # if not sns_user or sns_user.is_active is False:
+        #     raise HTTPException(401, "입력된 정보에 해당하는 유저를 찾을 수 없습니다.")
         return sns_user
 
     def create_join_survey(self, db: Session, survey_in: SurveyCreate, *, user_id: int) \
