@@ -14,13 +14,14 @@ class SurveyType(str, Enum):
     C = "C"
 
 
+# TODO 단일 답변도 List에 싸서 받기
 class SurveyAData(BaseModel):
     q1: List[Union[int, str]] = [1]
-    q2: int = 1
-    q2_1: Optional[int] = None
+    q2: List[int] = [1]
+    q2_1: List[Any] = []
     q3: List[Union[int, str]] = [1]
     q4: List[Union[int, str]] = [1]
-    q5: int = 1
+    q5: List[int] = [1]
 
     @validator("q1")
     def limit_q1_range(cls, v):
@@ -39,17 +40,24 @@ class SurveyAData(BaseModel):
 
     @validator("q2")
     def limit_q2_range(cls, v):
-        if v not in range(1, 7):
+        if len(v) > 1:
+            raise ValueError(f"A 타입 설문지 q2 설문의 가능한 최대 답변 갯수는 1개 입니다."
+                             f"| length of subjected list of q2: {len(v)}")
+        if v[0] not in range(1, 7):
             raise ValueError(f"A 타입 설문지의 q2 설문의 번호 답변의 범위는 1번~6번 까지 입니다. | ValueError from {v}")
         return v
 
     @validator("q2_1")
     def limit_q2_1_range(cls, v, values):
         q2 = values.get("q2")
-        if q2 == 1 and v is not None:
-            raise ValueError("q2의 답변이 1번이었다면 q2의 답변이 있을 수 없습니다 (\"q2\": null)")
-        if v not in range(1, 5) and v is not None:
-            raise ValueError(f"A 타입 설문지의 q2_1 설문의 번호 답변의 범위는 1번~4번 까지 입니다. | ValueError from {v}")
+        if q2 == 1 and len(v) != 0:
+            raise ValueError("q2의 답변이 1번이었다면 q2는 빈 배열이어야 합니다 (\"q2\": [])")
+        if len(v) > 1:
+            raise ValueError(f"A 타입 설문지 q2_1 설문의 가능한 최대 답변 갯수는 1개 입니다."
+                             f"| length of subjected list of q2_1: {len(q2)}")
+        if len(v) == 1:
+            if v[0] not in range(1, 5) and v is not None:
+                raise ValueError(f"A 타입 설문지의 q2_1 설문의 번호 답변의 범위는 1번~4번 까지 입니다. | ValueError from {v}")
         return v
 
     # 3번 질문 > 1~4번 답변 혹은 string
@@ -87,7 +95,10 @@ class SurveyAData(BaseModel):
     # 5번 질문 > 1~4번 답변
     @validator("q5")
     def limit_q5_range(cls, v):
-        if v not in range(1, 5):
+        if len(v) > 1:
+            raise ValueError(f"A 타입 설문지 q2 설문의 가능한 최대 답변 갯수는 1개 입니다."
+                             f"| length of subjected list of q2: {len(v)}")
+        if v[0] not in range(1, 5):
             raise ValueError(f"A 타입 설문지의 q5 설문의 번호 답변의 범위는 1번~4번 까지 입니다. | ValueError from {v}")
         return v
 

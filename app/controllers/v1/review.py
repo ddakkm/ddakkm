@@ -1,11 +1,10 @@
 import os
-from typing import Any, Union, List, Optional
+from typing import Union, List
 import uuid
 import logging
 
 from sqlalchemy.orm import Session
-from fastapi import APIRouter, Depends, BackgroundTasks, File, UploadFile, HTTPException
-from fastapi.encoders import jsonable_encoder
+from fastapi import APIRouter, Depends, BackgroundTasks, File, UploadFile, HTTPException, Request
 from pydantic import EmailStr
 
 from app.core.config import settings
@@ -140,6 +139,8 @@ async def create_images(
                     f"{uuid.uuid5(uuid.NAMESPACE_OID, files[i].filename)}{os.path.splitext(files[i].filename)[1]}")
         except IndexError:
             setattr(uploaded_files, f"image{i+1}_url", None)
+        finally:
+            [await file.close() for file in files]
     return uploaded_files
 
 
@@ -298,10 +299,3 @@ async def change_review_like_status(
     <h2>_PS. 빠르게 만들기 위해 하나의 API로 좋아요/좋아요 취소를 모두 처리하도록 했습니다. 혹시 클라에서 분기가 불편해지거나 하면 말해주세요 그냥 2개로 나눌께요_</h2>
     """
     return crud.user_like.change_user_like_review_status(db, current_user=current_user, review_id=review_id)
-
-
-@router.get("/{review_id}/sd")
-async def test(
-        review_id: int,
-        db: Session = Depends(deps.get_db)):
-    return crud.review_keyword.bulk_update(db=db, review_id=review_id, keywords=["피로감", "멍", "두근거림", "관절통", "두드러기"])

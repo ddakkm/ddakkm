@@ -80,12 +80,6 @@ class CRUDReview(CRUDBase[Review, ReviewCreate, ReviewUpdate]):
         else:
             filter_is_underlying_disease = models.SurveyA.is_underlying_disease == False
 
-        # query = db.query(self.model).\
-        #     filter(filter_query).filter(filter_age).filter(filter_gender).filter(filter_vaccine_type).\
-        #     filter(filter_is_crossed).filter(filter_round).filter(filter_is_pregnant).\
-        #     filter(filter_is_underlying_disease).filter(self.model.is_delete == False).\
-        #     group_by(self.model.id)
-
         query = db.query(self.model).outerjoin(models.SurveyA).options(joinedload(self.model.survey)).\
             filter(filter_query).filter(filter_age).filter(filter_gender).filter(filter_vaccine_type).\
             filter(filter_is_crossed).filter(filter_round).filter(filter_is_pregnant).\
