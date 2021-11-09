@@ -23,8 +23,6 @@ class Images(BaseModel):
     image1_url: Optional[str] = "http//sample.com/1"
     image2_url: Optional[str]
     image3_url: Optional[str]
-    image4_url: Optional[str]
-    image5_url: Optional[str]
 
 
 class ReviewBase(BaseModel):

@@ -35,7 +35,7 @@ async def log_real_ip(request: Request, call_next):
     response = await call_next(request)
     real_ip = request.headers.get("x-real-ip", None)
     if real_ip:
-        logger.info(f"[{request.method.upper()}] -> {request.url} FROM : {real_ip} \n ======= \n ")
+        logger.info(f"\n=====\n[{request.method.upper()}] -> {request.url} FROM : {real_ip}\n=====")
     return response
 
 

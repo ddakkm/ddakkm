@@ -119,6 +119,7 @@ async def create_images(
       -F 'files=@image2.png;type=image/png
     ```
     """
+    logger.info(f"{len(files)} 개 이미지 입력")
     if len(files) > 5:
         raise HTTPException(422, "이미지는 5개까지만 첨부할 수 있습니다.")
 
@@ -131,7 +132,7 @@ async def create_images(
 
     # 업로드된 이미지 url 스키마 리턴
     uploaded_files = schemas.Images()
-    for i in range(5):
+    for i in range(3):
         try:
             setattr(uploaded_files,
                     f"image{i+1}_url",
