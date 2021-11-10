@@ -9,6 +9,8 @@ from app import crud, schemas, models
 
 router = APIRouter()
 
+# TODO POST 결과값에 통일된 응답값 이용
+
 
 @router.get("/join-survey", response_model=schemas.JoinSurveyStatusResponse, name="회원가입 설문 여부 확인")
 async def get_join_survey_status(

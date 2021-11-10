@@ -19,6 +19,8 @@ from app import crud, schemas, models
 router = APIRouter()
 logger = logging.getLogger('ddakkm_logger')
 
+# TODO POST 결과값에 통일된 응답값 이용
+
 
 @router.post("", name="리뷰 생성")
 async def create_review(
@@ -82,7 +84,6 @@ async def get_reviews(
     query = crud.review.get_list_paginated(db, page_request, filters)
     review_list = [schemas.ReviewResponse(
         id=review.id,
-        images=review.images,
         user_id=review.user_id,
         nickname=review.user.nickname,
         vaccine_round=review.survey.vaccine_round,

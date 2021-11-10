@@ -14,6 +14,7 @@ from app.schemas.response import BaseResponse
 
 router = APIRouter()
 
+# TODO POST 결과값에 통일된 응답값 이용
 
 @router.post("/sign-up", response_model=schemas.LoginResponse, name="회원가입")
 async def create_user_sns(

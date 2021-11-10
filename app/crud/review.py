@@ -1,6 +1,6 @@
 from typing import List
 
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session, joinedload, aliased
 from fastapi.encoders import jsonable_encoder
 from fastapi import HTTPException
 
@@ -135,12 +135,15 @@ class CRUDReview(CRUDBase[Review, ReviewCreate, ReviewUpdate]):
             raise HTTPException(401, "이 게시글을 수정할 권한이 없습니다.")
 
     def get_review_details(self, db: Session, review_id: int) -> Review:
-        review_obj = db.query(self.model).outerjoin(models.Comment).outerjoin(models.User).\
+        review_user = aliased(models.User)
+        review_obj = db.query(self.model).outerjoin(models.Comment).outerjoin(models.Comment.user).\
             options(joinedload(self.model.comments).joinedload(models.Comment.user)).\
             outerjoin(models.ReviewKeyword).options(joinedload(self.model.keywords)).\
+            join(review_user, review_user.id == self.model.user_id).options(joinedload(self.model.user)).\
             filter(self.model.is_delete == False).filter(self.model.id == review_id).\
-            filter(models.User.is_active == True).\
+            filter(review_user.is_active == True).\
             first()
+
         if review_obj is None:
             raise HTTPException(404, "리뷰를 찾을 수 없습니다.")
         return review_obj

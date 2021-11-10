@@ -12,6 +12,8 @@ from app.utils.smpt import email_sender
 
 router = APIRouter()
 
+# TODO POST 결과값에 통일된 응답값 이용
+
 
 @router.post("/{comment_id}", name="대댓글 작성")
 async def create_nested_comment(
