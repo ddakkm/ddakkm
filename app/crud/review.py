@@ -81,9 +81,11 @@ class CRUDReview(CRUDBase[Review, ReviewCreate, ReviewUpdate]):
             filter_is_underlying_disease = models.SurveyA.is_underlying_disease == False
 
         query = db.query(self.model).outerjoin(models.SurveyA).options(joinedload(self.model.survey)).\
+            join(models.User).options(joinedload(self.model.user)).\
             filter(filter_query).filter(filter_age).filter(filter_gender).filter(filter_vaccine_type).\
             filter(filter_is_crossed).filter(filter_round).filter(filter_is_pregnant).\
             filter(filter_is_underlying_disease).filter(self.model.is_delete == False).\
+            filter(models.User.is_active == True).\
             group_by(self.model.id)
 
         page = page_request.get("page", 1)
@@ -96,7 +98,9 @@ class CRUDReview(CRUDBase[Review, ReviewCreate, ReviewUpdate]):
         )
 
     def get_review(self, db: Session, id: int) -> Review:
-        review_obj = db.query(self.model).filter(self.model.id == id).first()
+        review_obj = db.query(self.model).filter(self.model.id == id).\
+            join(models.User).options(joinedload(self.model.user)).\
+            filter(models.User.is_active == True).first()
         if review_obj is None:
             raise HTTPException(404, "리뷰를 찾을 수 없습니다.")
         return review_obj
@@ -134,7 +138,9 @@ class CRUDReview(CRUDBase[Review, ReviewCreate, ReviewUpdate]):
         review_obj = db.query(self.model).outerjoin(models.Comment).outerjoin(models.User).\
             options(joinedload(self.model.comments).joinedload(models.Comment.user)).\
             outerjoin(models.ReviewKeyword).options(joinedload(self.model.keywords)).\
-            filter(self.model.is_delete == False).filter(self.model.id == review_id).first()
+            filter(self.model.is_delete == False).filter(self.model.id == review_id).\
+            filter(models.User.is_active == True).\
+            first()
         if review_obj is None:
             raise HTTPException(404, "리뷰를 찾을 수 없습니다.")
         return review_obj

@@ -14,7 +14,6 @@ class SurveyType(str, Enum):
     C = "C"
 
 
-# TODO 단일 답변도 List에 싸서 받기
 class SurveyAData(BaseModel):
     q1: List[Union[int, str]] = [1]
     q2: List[int] = [1]

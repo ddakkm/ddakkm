@@ -20,9 +20,6 @@ router = APIRouter()
 logger = logging.getLogger('ddakkm_logger')
 
 
-# TODO 탈퇴한 회원 댓글 안뜨게
-
-
 @router.post("", name="리뷰 생성")
 async def create_review(
         *,
