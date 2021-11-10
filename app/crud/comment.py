@@ -69,5 +69,9 @@ class CRUDComment(CRUDBase[Comment, CommentCreate, CommentUpdate]):
         counts = db.query(self.model).filter(self.model.user_id == user_id).count()
         return counts
 
+    def get_comment_counts_by_review_id(self, db: Session, review_id: int) -> int:
+        counts = db.query(self.model).filter(self.model.review_id == review_id).count()
+        return counts
+
 
 comment = CRUDComment(Comment)

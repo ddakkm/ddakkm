@@ -50,6 +50,8 @@ class Review(ReviewBase):
     nickname: str
     comments: List[Comment]
     keywords: Optional[List[str]]
+    comment_count: int
+    like_count: int
 
     class Config:
         orm_mode = True

@@ -15,9 +15,6 @@ from app.schemas.response import BaseResponse
 router = APIRouter()
 
 
-# TODO 탈퇴한 회원 리뷰 안뜨게
-
-
 @router.post("/sign-up", response_model=schemas.LoginResponse, name="회원가입")
 async def create_user_sns(
         *,
