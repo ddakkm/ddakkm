@@ -24,6 +24,8 @@ async def get_comment_list(
         db: Session = Depends(deps.get_db),
         current_user: Union[models.User, None] = Depends(deps.get_current_user_optional)
 ) -> List[Comment]:
+    if current_user is None:
+        current_user = models.User(id=0)
     comments = crud.comment.get_comments_by_review_id(db=db, review_id=review_id)
     comment_ids_like_by_user = [
         jsonable_encoder(comment_id).get("comment_id")
