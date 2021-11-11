@@ -78,52 +78,6 @@ async def create_join_survey(
     return crud.user.create_join_survey(db=db, survey_in=survey_in, user_id=current_user.id)
 
 
-@router.get("/push", response_model=schemas.PushStatusResponse, name="푸시알림 동의 여부 확인 (키워드/활동 둘다)")
-async def get_agree_push_status(
-        db: Session = Depends(deps.get_db),
-        current_user: models.User = Depends(deps.get_current_user)
-) -> schemas.PushStatusResponse:
-    """
-    <h1> push 알림 수신 동의 여부를 확인합니다. </h1>
-    """
-    """
-    <h1>푸시알림수신 동의 여부 및 회원가입 설문의 상태를 리턴합니다.</h1>
-    """
-    user = crud.user.get(db=db, id=current_user.id)
-    return schemas.PushStatusResponse(
-        agree_activity_push=user.agree_activity_push,
-        agree_keyword_push=user.agree_keyword_push
-    )
-
-
-@router.post("/push/keyword", name="키워드 푸시 알림 동의 상태 변경")
-async def change_push_status(
-        db: Session = Depends(deps.get_db),
-        current_user: models.User = Depends(deps.get_current_user)
-) -> models.User:
-    """
-    <h1> 키워드 push 알림 수신 동의 여부를 변경합니다. </h1>
-    동의 상태의 유저가 호출하면 동의 상태를 false 로 // 비동의 상태의 유저가 호출하면 동의 상태가 true가 됩니다. </br>
-    </br>
-    ```동의 / 동의취소 따로 만들어야하면 말해주세요.```
-    """
-    return crud.user.change_user_agree_keyword_push_status(db=db, current_user=current_user)
-
-
-@router.post("/push/activity", name="활동 푸시 알림 동의 상태 변경")
-async def change_push_status(
-        db: Session = Depends(deps.get_db),
-        current_user: models.User = Depends(deps.get_current_user)
-) -> models.User:
-    """
-    <h1> 활동 push 알림 수신 동의 여부를 변경합니다. </h1>
-    동의 상태의 유저가 호출하면 동의 상태를 false 로 // 비동의 상태의 유저가 호출하면 동의 상태가 true가 됩니다. </br>
-    </br>
-    ```동의 / 동의취소 따로 만들어야하면 말해주세요.```
-    """
-    return crud.user.change_user_agree_activity_push_status(db=db, current_user=current_user)
-
-
 # TODO A타입 vaccine_round 는 최신 survey에서 가져와야 함
 @router.get("/me/profile", response_model=schemas.UserProfileResponse, name="내 프로필 확인")
 async def get_my_profile(
@@ -327,3 +281,49 @@ async def get_user_info(
                                                       "is_crossed": review.survey.is_crossed}),
         ) for review in reviews_model]
     return reviews
+
+
+@router.get("/push", response_model=schemas.PushStatusResponse, name="푸시알림 동의 여부 확인 (키워드/활동 둘다)", deprecated=True)
+async def get_agree_push_status(
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_user)
+) -> schemas.PushStatusResponse:
+    """
+    <h1> push 알림 수신 동의 여부를 확인합니다. </h1>
+    """
+    """
+    <h1>푸시알림수신 동의 여부 및 회원가입 설문의 상태를 리턴합니다.</h1>
+    """
+    user = crud.user.get(db=db, id=current_user.id)
+    return schemas.PushStatusResponse(
+        agree_activity_push=user.agree_activity_push,
+        agree_keyword_push=user.agree_keyword_push
+    )
+
+
+@router.post("/push/keyword", name="키워드 푸시 알림 동의 상태 변경", deprecated=True)
+async def change_push_status(
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_user)
+) -> models.User:
+    """
+    <h1> 키워드 push 알림 수신 동의 여부를 변경합니다. </h1>
+    동의 상태의 유저가 호출하면 동의 상태를 false 로 // 비동의 상태의 유저가 호출하면 동의 상태가 true가 됩니다. </br>
+    </br>
+    ```동의 / 동의취소 따로 만들어야하면 말해주세요.```
+    """
+    return crud.user.change_user_agree_keyword_push_status(db=db, current_user=current_user)
+
+
+@router.post("/push/activity", name="활동 푸시 알림 동의 상태 변경", deprecated=True)
+async def change_push_status(
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_user)
+) -> models.User:
+    """
+    <h1> 활동 push 알림 수신 동의 여부를 변경합니다. </h1>
+    동의 상태의 유저가 호출하면 동의 상태를 false 로 // 비동의 상태의 유저가 호출하면 동의 상태가 true가 됩니다. </br>
+    </br>
+    ```동의 / 동의취소 따로 만들어야하면 말해주세요.```
+    """
+    return crud.user.change_user_agree_activity_push_status(db=db, current_user=current_user)
