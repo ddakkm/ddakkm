@@ -49,7 +49,7 @@ class Review(ReviewBase):
     is_writer: bool
     user_id: int
     nickname: str
-    comments: List[Comment]
+    # comments: List[Comment]
     keywords: Optional[List[str]]
     comment_count: int
     like_count: int

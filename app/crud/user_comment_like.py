@@ -36,5 +36,10 @@ class CRUDUserCommentLike(CRUDBase[UserCommentLike, UserCommentLikeCreate, UserC
             db.refresh(db_obj)
             return db_obj
 
+    def get_comment_id_by_user_id(self, db: Session, user_id: int):
+        result = db.query(self.model.comment_id).\
+            filter(self.model.user_id == user_id).group_by(self.model.comment_id).all()
+        return result
+
 
 user_comment_like = CRUDUserCommentLike(UserCommentLike)

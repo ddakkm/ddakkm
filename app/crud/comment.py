@@ -14,7 +14,23 @@ from app.schemas.comment import CommentCreate, CommentUpdate
 # TODO 삭제된 댓글은 보여지되 내용과 작성자가 "삭제됨"으로 표현된다.
 # TODO 그렇다면 삭제된 회원의 댓글은 어떻게 처리해야하는가?
 
+
 class CRUDComment(CRUDBase[Comment, CommentCreate, CommentUpdate]):
+    def get_comments_by_review_id(self, db: Session, review_id) -> List[Comment]:
+        """
+        review_user = aliased(models.User)
+        review_obj = db.query(self.model).outerjoin(models.Comment).outerjoin(models.Comment.user).\
+            options(joinedload(self.model.comments).joinedload(models.Comment.user)).\
+            outerjoin(models.ReviewKeyword).options(joinedload(self.model.keywords)).\
+            join(review_user, review_user.id == self.model.user_id).options(joinedload(self.model.user)).\
+            filter(self.model.is_delete == False).filter(self.model.id == review_id).\
+            filter(review_user.is_active == True).\
+            first()
+        """
+        comment_obj = db.query(self.model).outerjoin(self.model.user).\
+            options(joinedload(self.model.user)).filter(self.model.review_id == review_id).all()
+        return comment_obj
+
     def get_comment(self, db: Session, id: int) -> Comment:
         comment_obj = db.query(self.model).filter(self.model.id == id).first()
         if comment_obj is None:

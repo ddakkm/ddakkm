@@ -1,18 +1,35 @@
-from typing import Union
+from typing import Union, List
 
 from pydantic import EmailStr
 from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends, BackgroundTasks, HTTPException
+from fastapi.encoders import jsonable_encoder
 
 from app import crud, schemas, models
 from app.core.config import settings
 from app.controllers import deps
+from app.schemas.comment import Comment
 from app.utils.report import get_report_reason
 from app.utils.smpt import email_sender
+from app.utils.comment import comment_model_to_dto
 
 router = APIRouter()
 
 # TODO POST 결과값에 통일된 응답값 이용
+
+
+@router.get("/{review_id}", name="리뷰에 속한 댓글 리스트 가져오기", response_model=List[Comment])
+async def get_comment_list(
+        review_id: int,
+        db: Session = Depends(deps.get_db),
+        current_user: Union[models.User, None] = Depends(deps.get_current_user_optional)
+) -> List[Comment]:
+    comments = crud.comment.get_comments_by_review_id(db=db, review_id=review_id)
+    comment_ids_like_by_user = [
+        jsonable_encoder(comment_id).get("comment_id")
+        for comment_id in crud.user_comment_like.get_comment_id_by_user_id(db=db, user_id=current_user.id)
+    ]
+    return comment_model_to_dto(comments, comment_ids_like_by_user)
 
 
 @router.post("/{comment_id}", name="대댓글 작성")
