@@ -38,10 +38,12 @@ def generate_access_token_for_sns_user(user: Optional[models.User]) -> schemas.l
     if user:
         return schemas.login.LoginResponse(
             is_user=True,
-            access_token=security.create_access_token(subject=user.id, expires_delta=access_token_expires)
+            access_token=security.create_access_token(subject=user.id, expires_delta=access_token_expires),
+            nickname=user.nickname
         )
     elif user is None:
         return schemas.login.LoginResponse(
             is_user=False,
-            access_token=None
+            access_token=None,
+            nickname=None
         )

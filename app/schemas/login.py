@@ -10,6 +10,7 @@ class LoginResponse(BaseModel):
     is_user: bool
     done_survey: Optional[bool]
     access_token: Optional[str]
+    nickname: Optional[str]
 
 
 class CreateSnsResponse(BaseModel):
