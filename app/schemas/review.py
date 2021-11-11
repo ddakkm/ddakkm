@@ -54,6 +54,7 @@ class Review(ReviewBase):
     comment_count: int
     like_count: int
     images: Optional[Images]
+    user_is_like: bool
 
     class Config:
         orm_mode = True

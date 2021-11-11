@@ -4,7 +4,8 @@ import uuid
 import logging
 
 from sqlalchemy.orm import Session
-from fastapi import APIRouter, Depends, BackgroundTasks, File, UploadFile, HTTPException, Request
+from fastapi import APIRouter, Depends, BackgroundTasks, File, UploadFile, HTTPException
+from fastapi.encoders import jsonable_encoder
 from pydantic import EmailStr
 
 from app.core.config import settings
@@ -179,6 +180,10 @@ async def get_review_details(
     # 비회원인 경우 id 값이 없기 때문에, 작성자인지 여부를 판별할 수 없음 -> 이에 따라 임시 orm 모델로 변환시켜줌
     if current_user is None:
         current_user = models.User(id=0)
+    review_ids_like_by_user = [
+        jsonable_encoder(review_id).get("review_id")
+        for review_id in crud.user_like.get_review_id_by_user_id(db=db, user_id=current_user.id)
+    ]
     review_obj = crud.review.get_review_details(db=db, review_id=review_id)
     delattr(review_obj.survey, "id")
     review_details = schemas.Review(
@@ -192,7 +197,8 @@ async def get_review_details(
         comments=comment_model_to_dto(review_obj.comments),
         keywords=[review_keyword.keyword for review_keyword in review_obj.keywords],
         like_count=review_obj.like_count,
-        comment_count=crud.comment.get_comment_counts_by_review_id(db=db, review_id=review_id)
+        comment_count=crud.comment.get_comment_counts_by_review_id(db=db, review_id=review_id),
+        user_is_like=review_obj.id in review_ids_like_by_user,
     )
     return review_details
 
