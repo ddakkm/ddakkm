@@ -26,7 +26,7 @@ class CRUDUserKeyword(CRUDBase[UserKeyword, CreateSchemaType, UserKeywordUpdate]
         [self.create(db=db, obj_in=UserKeywordUpdate(user_id=user_id, keyword=keyword_to_insert))
          for keyword_to_insert in to_insert]
         db.flush()
-        return BaseResponse(message=f"키워드 {len(to_delete)}개 삭제됨 : {to_delete} \n 키워드 {len(to_insert)}개 입력됨 : {to_insert}")
+        return BaseResponse(object=user_id, message=f"유저 ID : #{user_id}의 관심 키워드가 수정되었습니다.")
 
     def __delete_by_keyword(self, db: Session, user_id: int, keyword: str):
         db_obj = db.query(self.model)\

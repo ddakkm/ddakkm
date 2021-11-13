@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 
-from app import crud
+from app import crud, schemas
 from app.crud.base import CRUDBase
 from app.models.users import User
 from app.models.user_like import UserLike
@@ -9,7 +9,7 @@ from app.schemas.user_like import UserCreate, UserUpdate
 
 
 class CRUDUserLike(CRUDBase[UserLike, UserCreate, UserUpdate]):
-    def change_user_like_review_status(self, db: Session, current_user: User, review_id: int):
+    def change_user_like_review_status(self, db: Session, current_user: User, review_id: int) -> schemas.BaseResponse:
         review = crud.review.get_review(db, id=review_id)
         if not review:
             raise HTTPException(404, "좋아요 할 리뷰를 찾을 수 없습니다.")
@@ -23,8 +23,10 @@ class CRUDUserLike(CRUDBase[UserLike, UserCreate, UserUpdate]):
             db.add(review)
             db.commit()
             db.refresh(review)
-            status = {"status": "ok", "detail": f"사용자 {check_like.user_id}가 리뷰 {check_like.review_id}에 대한 좋아요를 취소했습니다."}
-            return status
+            response = schemas.BaseResponse(
+                object=review_id, message=f"리뷰 ID : #{review_id}에 대해 회원 ID : #{current_user.id}가 좋아요를 취소했습니다."
+            )
+            return response
 
         # 좋아요 안한 상태면 좋아요 기록 생성
         else:
@@ -34,7 +36,10 @@ class CRUDUserLike(CRUDBase[UserLike, UserCreate, UserUpdate]):
             db.add(db_obj)
             db.commit()
             db.refresh(db_obj)
-            return db_obj
+            response = schemas.BaseResponse(
+                object=review_id, message=f"리뷰 ID : #{review_id}에 대해 회원 ID : #{current_user.id}가 좋아요하였습니다."
+            )
+            return response
 
     def get_like_review_list_by_current_user(self, db: Session, current_user: User):
         return [review_id_set[0] for review_id_set

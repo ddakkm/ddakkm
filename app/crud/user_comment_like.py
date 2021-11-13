@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 
-from app import crud
+from app import crud, schemas
 from app.crud.base import CRUDBase
 from app.models.users import User
 from app.models.user_comment_like import UserCommentLike
@@ -9,7 +9,7 @@ from app.schemas.user_comment_like import UserCommentLikeCreate, UserCommentLike
 
 
 class CRUDUserCommentLike(CRUDBase[UserCommentLike, UserCommentLikeCreate, UserCommentLikeUpdate]):
-    def change_user_comment_like_status(self, db: Session, current_user: User, comment_id: int):
+    def change_user_comment_like_status(self, db: Session, current_user: User, comment_id: int) -> schemas.BaseResponse:
         comment = crud.comment.get_comment(db, id=comment_id)
         if not comment:
             raise HTTPException(404, "좋아요 할 댓글을 찾을 수 없습니다.")
@@ -23,8 +23,10 @@ class CRUDUserCommentLike(CRUDBase[UserCommentLike, UserCommentLikeCreate, UserC
             db.add(comment)
             db.commit()
             db.refresh(comment)
-            status = {"status": "ok", "detail": f"사용자 {check_like.user_id}가 댓글 {check_like.comment_id}에 대한 좋아요를 취소했습니다."}
-            return status
+            response = schemas.BaseResponse(
+                object=comment_id, message=f"댓글 ID : #{comment_id}에 대해 유저 ID : #{current_user.id}가 좋아요를 취소했습니다."
+            )
+            return response
 
         # 좋아요 안한 상태면 좋아요 기록 생성
         else:
@@ -34,7 +36,10 @@ class CRUDUserCommentLike(CRUDBase[UserCommentLike, UserCommentLikeCreate, UserC
             db.add(db_obj)
             db.commit()
             db.refresh(db_obj)
-            return db_obj
+            response = schemas.BaseResponse(
+                object=comment_id, message=f"댓글 ID : #{comment_id}에 대해 유저 ID : #{current_user.id}가 좋아요하였습니다."
+            )
+            return response
 
     def get_comment_id_by_user_id(self, db: Session, user_id: int):
         result = db.query(self.model.comment_id).\

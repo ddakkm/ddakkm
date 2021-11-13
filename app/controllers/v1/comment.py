@@ -34,29 +34,33 @@ async def get_comment_list(
     return comment_model_to_dto(comments, comment_ids_like_by_user)
 
 
-@router.post("/{comment_id}", name="대댓글 작성")
+@router.post("/{comment_id}", name="대댓글 작성", response_model=schemas.BaseResponse)
 async def create_nested_comment(
         comment_id: int,
         comment_in: schemas.CommentCreate,
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_user)
-) -> models.Comment:
+) -> schemas.BaseResponse:
     """
     <h1> 코멘트에 코멘트를 추가합니다. (대댓글) </h1> </br>
     </br>
     댓글 내용은 {"content": "댓글 내용"} <- 형식의 json Body로 받고,  </br>
     글을 작성하고자 하는 review_id 와 대댓글의 comment_id 를 Path Parameter 로 받습니다.
     """
-    return crud.comment.create_nested_comment(
+    result = crud.comment.create_nested_comment(
         db, obj_in=comment_in, current_user=current_user, comment_id=comment_id)
+    response = schemas.BaseResponse(
+        object=result.review_id, message=f"리뷰 ID : #{result.review_id}에 댓글 ID : #{result.id}가 생성되었습니다(대댓글). 댓글 내용 : {result.content}"
+    )
+    return response
 
 
-@router.delete("/{comment_id}", name="댓글 삭제")
+@router.delete("/{comment_id}", name="댓글 삭제", response_model=schemas.BaseResponse)
 async def delete_comment(
         comment_id: int,
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_user)
-) -> models.Comment:
+) -> schemas.BaseResponse:
     """
     <h1> 코멘트를 삭제합니다. </h1> </br>
     </br>
@@ -65,18 +69,20 @@ async def delete_comment(
     db_obj = crud.comment.get_comment(db, comment_id)
     if db_obj.is_delete is True:
         raise HTTPException(400, "이미 삭제된 코멘트입니다.")
-    return crud.comment.set_comment_status_as_deleted(db, db_obj=db_obj, current_user=current_user)
+    result = crud.comment.set_comment_status_as_deleted(db, db_obj=db_obj, current_user=current_user)
+    response = schemas.BaseResponse(object=result.id, message=f"댓글 ID : #{result.id}가 삭제상태로 변경되었습니다.")
+    return response
 
 
 # TODO : 백그라운드 테스크 celery 로 변경
-@router.post("/{comment_id}/report", name="댓글 삭제")
+@router.post("/{comment_id}/report", name="댓글 신고", response_model=schemas.BaseResponse)
 async def report_comment(
         comment_id: int,
         reason: schemas.ReportReason,
         background_task: BackgroundTasks,
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_user)
-) -> dict:
+) -> schemas.BaseResponse:
     """
     <h1> 댓글을 신고합니다. </h1> </br>
     신고 목록을 관리하는 DB를 따로 구현하지 않아, ddakkm@kakao.com 이메일 계정으로 신고 내역이 전달됩니다. </br>
@@ -102,15 +108,17 @@ async def report_comment(
     신고사유: {report_reason}
     """
     background_task.add_task(email_sender, subject=subject, text=text, to=EmailStr(settings.SMTP_USER))
-    return {"mail_subject": subject, "status": "이메일 처리 작업이 Background Worker 에게 정상적으로 전달되었습니다."}
+    response = schemas.BaseResponse(
+        object=comment_id, message=f"댓글 ID : #{comment_id}가 신고처리되었습니다. 제목 \"{subject}\"으로 상세내용이 발송되었습니다.")
+    return response
 
 
-@router.post("/{comment_id}/like_status", name="회원의 댓글에 대한 좋아요 상태 변경")
+@router.post("/{comment_id}/like_status", name="회원의 댓글에 대한 좋아요 상태 변경", response_model=schemas.BaseResponse)
 async def change_comment_like_status(
         comment_id: int,
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_user)
-) -> Union[models.UserCommentLike, dict]:
+) -> schemas.BaseResponse:
     """
     <h1> 댓글에 대한 좋아요 상태를 변경합니다. </h1> </br>
     성공시 200 을 반환합니다. </br>

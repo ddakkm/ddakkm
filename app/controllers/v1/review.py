@@ -22,13 +22,13 @@ logger = logging.getLogger('ddakkm_logger')
 # TODO POST 결과값에 통일된 응답값 이용
 
 
-@router.post("", name="리뷰 생성")
+@router.post("", name="리뷰 생성", response_model=schemas.BaseResponse)
 async def create_review(
         *,
         db: Session = Depends(deps.get_db),
         review_in: schemas.ReviewCreate,
         current_user: models.User = Depends(deps.get_current_user)
-) -> models.Review:
+) -> schemas.BaseResponse:
     """
     <h1> 리뷰를 생성합니다. </h1> </br>
     리뷰에는 항상 A 형식의 설문지가 포함되어야 합니다. </br>
@@ -51,7 +51,10 @@ async def create_review(
     crud.review_keyword.bulk_create(db, review_id=review_obj.id, keywords=review_in.keywords)
     db.commit()
     db.refresh(review_obj)
-    return review_obj
+    response = schemas.BaseResponse(
+        object=review_obj.id, message=f"리뷰 ID : #{review_obj.id}가 작성되었습니다."
+    )
+    return response
 
 
 @router.get("", response_model=schemas.PageResponseReviews, name="리뷰 목록 가져오기")
@@ -202,13 +205,13 @@ async def get_review_details(
     return review_details
 
 
-@router.patch("/{review_id}", name="리뷰 수정")
+@router.patch("/{review_id}", name="리뷰 수정", response_model=schemas.BaseResponse)
 async def edit_review(
         review_id: int,
         review_in: schemas.ReviewUpdate,
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_user)
-) -> models.Review:
+) -> schemas.BaseResponse:
     """
     <h1> 사용자가 게시한 리뷰를 수정합니다. </h1> </br>
     """
@@ -218,15 +221,18 @@ async def edit_review(
     crud.review_keyword.bulk_update(db, review_id=review_id, keywords=review_in.keywords)
     db.commit()
     db.refresh(updated_review)
-    return updated_review
+    response = schemas.BaseResponse(
+        object=updated_review.id, message=f"리뷰 ID : #{updated_review.id}가 수정되었습니다."
+    )
+    return response
 
 
-@router.delete("/{review_id}", name="리뷰 삭제")
+@router.delete("/{review_id}", name="리뷰 삭제", response_model=schemas.BaseResponse)
 async def delete_review(
         review_id: int,
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_user)
-) -> models.Review:
+) -> schemas.BaseResponse:
     """
     <h1> 게시글의 상태를 삭제됨으로 변경합니다.</h1> </br>
     삭제 상태의 게시글은 리스트에 표현되지 않으며, 상세 정보 조회가 불가능합니다.
@@ -234,18 +240,22 @@ async def delete_review(
     """
     db_obj = crud.review.get_review(db, id=review_id)
     check_is_deleted(db_obj)
-    return crud.review.set_review_status_as_deleted(db, db_obj=db_obj, current_user=current_user)
+    crud.review.set_review_status_as_deleted(db, db_obj=db_obj, current_user=current_user)
+    response = schemas.BaseResponse(
+        object=db_obj.id, message=f"리뷰 ID : #{db_obj.id}가 삭제되었습니다."
+    )
+    return response
 
 
 # TODO : 백그라운드 테스크 celery 로 변경
-@router.post("/{review_id}/report", name="리뷰 신고")
+@router.post("/{review_id}/report", name="리뷰 신고", response_model=schemas.BaseResponse)
 async def report_review(
         review_id: int,
         reason: schemas.ReportReason,
         background_task: BackgroundTasks,
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_user)
-) -> dict:
+) -> schemas.BaseResponse:
     """
     <h1> 리뷰를 신고합니다. </h1> </br>
     신고 목록을 관리하는 DB를 따로 구현하지 않아, ddakkm@kakao.com 이메일 계정으로 신고 내역이 전달됩니다. </br>
@@ -273,31 +283,37 @@ async def report_review(
     신고사유: {report_reason}
     """
     background_task.add_task(email_sender, subject=subject, text=text, to=EmailStr(settings.SMTP_USER))
-    return {"mail_subject": subject, "status": "이메일 처리 작업이 Background Worker 에게 정상적으로 전달되었습니다."}
+    response = schemas.BaseResponse(
+        object=review_id, message=f"리뷰 ID : #{review_id}가 신고처리되었습니다. 제목 \"{subject}\"으로 상세내용이 발송되었습니다.")
+    return response
 
 
-@router.post("/{review_id}}/comment", name="리뷰에 댓글 작성")
+@router.post("/{review_id}}/comment", name="리뷰에 댓글 작성", response_model=schemas.BaseResponse)
 async def create_comment(
         review_id: int,
         comment_in: schemas.CommentCreate,
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_user)
-) -> models.Comment:
+) -> schemas.BaseResponse:
     """
     <h1> 리뷰에 코멘트를 추가합니다. </h1> </br>
     </br>
     댓글 내용은 {"content": "댓글 내용"} <- 형식의 json Body로 받고,  </br>
     글을 작성하고자 하는 review_id 를 Path Parameter 로 받습니다. </br>
     """
-    return crud.comment.create_by_current_user(db, obj_in=comment_in, current_user=current_user, review_id=review_id)
+    crud.comment.create_by_current_user(db, obj_in=comment_in, current_user=current_user, review_id=review_id)
+    response = schemas.BaseResponse(
+        object=review_id, message=f"리뷰 ID : #{review_id}에 댓글이 작성되었습니다."
+    )
+    return response
 
 
-@router.post("/{review_id}/like_status", name="회원의 리뷰에 대한 좋아요 상태 변경")
+@router.post("/{review_id}/like_status", name="회원의 리뷰에 대한 좋아요 상태 변경", response_model=schemas.BaseResponse)
 async def change_review_like_status(
         review_id: int,
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_user)
-) -> Union[models.UserLike, dict]:
+) -> schemas.BaseResponse:
     """
     <h1> 게시글에 대한 좋아요 상태를 변경합니다. </h1> </br>
     성공시 200 을 반환합니다. </br>

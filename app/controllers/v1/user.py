@@ -26,13 +26,13 @@ async def get_join_survey_status(
     )
 
 
-@router.post("/join-survey", name="회원가입 설문 등록")
+@router.post("/join-survey", name="회원가입 설문 등록", response_model=schemas.BaseResponse)
 async def create_join_survey(
         *,
         survey_in: schemas.SurveyCreate = Body(..., examples=schemas.survey_details_example),
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_user)
-) -> models.User:
+) -> schemas.BaseResponse:
     """
     <h1> 회원 가입 설문을 등록합니다. </h1>
     설문 타입 A 만 등록할 수 있는 리뷰 작성 (POST /v1/review) 과 다르게, 설문 타입 A, B, C 중 한개를 선택하여 보낼 수 있습니다. </br>
@@ -75,7 +75,9 @@ async def create_join_survey(
     """
     if current_user.join_survey_code != models.JoinSurveyCode.NONE:
         raise HTTPException(400, "이미 회원가입 설문을 마친 회원입니다.")
-    return crud.user.create_join_survey(db=db, survey_in=survey_in, user_id=current_user.id)
+    crud.user.create_join_survey(db=db, survey_in=survey_in, user_id=current_user.id)
+    response = schemas.BaseResponse(object=current_user.id, message=f"유저 ID : #{current_user.id}의 회원가입 설문이 등록되었습니다.")
+    return response
 
 
 # TODO A타입 vaccine_round 는 최신 survey에서 가져와야 함
@@ -174,33 +176,48 @@ async def get_user_posts(
     return user_reviews
 
 
-@router.post("/keyword", name="회원의 키워드 설정")
+@router.get("/keyword", name="회원의 키워드 목록 가져오기", response_model=List[str])
+async def get_keyword(
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_user)
+) -> List[str]:
+    user_keywords_model = crud.user_keyword.get_keywords_by_user_id(db=db, user_id=current_user.id)
+    user_keywords = [dict(keyword).get("keyword") for keyword in user_keywords_model]
+    return user_keywords
+
+
+@router.post("/keyword", name="회원의 키워드 설정", response_model=schemas.BaseResponse)
 async def set_keyword(
         *,
         obj_in: schemas.UserKeywordCreate,
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_user)
-) -> models.UserKeyword:
+) -> schemas.BaseResponse:
     """
     <h1> 유저의 키워드를 설정합니다. </h1>
     """
     user_keywords = crud.user_keyword.get_keywords_by_user_id(db=db, user_id=current_user.id)
     if len(user_keywords) > 0:
         raise HTTPException(400, "이미 키워드를 설정하였습니다. 키워드 수정 기능을 이용해주세요")
-    return crud.user.create_keywords(db=db, user_id=current_user.id, obj_in=obj_in)
+    crud.user.create_keywords(db=db, user_id=current_user.id, obj_in=obj_in)
+    response = schemas.BaseResponse(
+        object=current_user.id, message=f"유저 ID : #{current_user.id}의 관심 키워드가 설정되었습니다."
+    )
+    return response
 
 
-@router.patch("/keyword", name="회원의 키워드 수정")
+@router.patch("/keyword", name="회원의 키워드 수정", response_model=schemas.BaseResponse)
 async def edit_keyword(
         *,
         obj_in: schemas.UserKeywordCreate,
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_user)
-) -> Any:
+) -> schemas.BaseResponse:
     """
     <h1> 유저의 키워드를 수정합니다. </h1>
     """
     return crud.user_keyword.bulk_update(db=db, user_id=current_user.id, keywords=obj_in.keywords)
+
 
 
 @router.delete("", response_model=schemas.BaseResponse, deprecated=True, name="회원삭제 (개발 테스트용)")

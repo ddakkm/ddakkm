@@ -53,6 +53,8 @@ class CRUDComment(CRUDBase[Comment, CommentCreate, CommentUpdate]):
     def create_nested_comment(self, db: Session, *,
                               obj_in: CommentCreate, current_user: User, comment_id: int) -> Comment:
         comment_obj = self.get_comment(db, id=comment_id)
+        if comment_obj.depth == 1:
+            raise HTTPException(400, "대댓글에는 대댓글을 달 수 없습니다.")
         if comment_obj.is_delete is True:
             raise HTTPException(400, "이미 삭제된 댓글입니다.")
         review_id = comment_obj.review_id

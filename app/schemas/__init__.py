@@ -8,4 +8,4 @@ from .token import TokenPayload
 from .page_response import PageResponse, PageResponseReviews
 from .report import ReportReason
 from .response import BaseResponse
-from .keyword import UserKeywordCreate
+from .keyword import UserKeywordCreate, KeywordBase

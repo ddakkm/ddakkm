@@ -16,6 +16,7 @@ router = APIRouter()
 
 # TODO POST 결과값에 통일된 응답값 이용
 
+
 @router.post("/sign-up", response_model=schemas.LoginResponse, name="회원가입")
 async def create_user_sns(
         *,
@@ -83,7 +84,7 @@ async def create_user_local(
         *,
         db: Session = Depends(deps.get_db),
         user_in: schemas.UserCreate
-) -> models.User:
+) -> schemas.BaseResponse:
     """
     <h1>개발 테스트 용으로 임시 사용합니다. 상용서버에선 삭제할 예정</h1> </br>
     회원가입 API  </br>
@@ -97,7 +98,9 @@ async def create_user_local(
     |age|int|출생 연도를 받습니다.|
     |join_survey_code|enum(string)|가입 설문의 종류를 뜻하는 파라미터로, "NONE", "A", "B", "C" 를 받습니다.|
     """
-    return crud.user.create_local(db, obj_in=user_in)
+    result = crud.user.create_local(db, obj_in=user_in)
+    response = BaseResponse(object=result.id, message=f"user_id {result.id}가 생성되었습니다.")
+    return response
 
 
 @router.post("/login/local", deprecated=True, name="id/pw로 로그인 (개발테스트용)")

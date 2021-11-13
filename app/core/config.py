@@ -26,6 +26,8 @@ class Settings(BaseSettings):
     BOTO3_ACCESS_KEY: str
     BOTO3_SECRET_KEY: str
 
+    FCM_API_KEY: str
+
 # debug
 # _env_file=f'{os.getenv("app_env", "../app/env/local")}.env'
 

@@ -125,7 +125,7 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
         db.add(user)
         db.commit()
         db.refresh(user)
-        return BaseResponse(message=f"유저 #{user.id}가 비활성화 되었습니다.")
+        return BaseResponse(message=f"유저 #{user.id}가 비활성화 되었습니다.", object=user_id)
 
     @staticmethod
     def change_user_agree_keyword_push_status(db: Session, current_user: User):

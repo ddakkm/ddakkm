@@ -37,7 +37,7 @@ class CRUDReviewKeyword(CRUDBase[ReviewKeyword, CreateSchemaType, ReviewKeywordU
         [self.create(db=db, obj_in=ReviewKeywordUpdate(review_id=review_id, keyword=keyword_to_insert))
          for keyword_to_insert in to_insert]
         db.flush()
-        return BaseResponse(message=f"키워드 {len(to_delete)}개 삭제됨 : {to_delete} \n 키워드 {len(to_insert)}개 입력됨 : {to_insert}")
+        return BaseResponse(object=review_id, message=f"키워드 {len(to_delete)}개 삭제됨 : {to_delete} \n 키워드 {len(to_insert)}개 입력됨 : {to_insert}")
 
     def __delete_by_keyword(self, db: Session, review_id: int, keyword: str):
         db_obj = db.query(self.model)\
