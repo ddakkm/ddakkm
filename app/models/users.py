@@ -41,6 +41,7 @@ class User(Base):
     agree_keyword_push = Column(Boolean, nullable=False)
     agree_activity_push = Column(Boolean, nullable=False)
     character_image = Column(String(100))
+    fcm_token = Column(String(300))
 
     # One to One
     survey_a = relationship("SurveyA", back_populates="user", uselist=False, join_depth=1, lazy="joined")

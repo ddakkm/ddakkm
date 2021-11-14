@@ -219,7 +219,6 @@ async def edit_keyword(
     return crud.user_keyword.bulk_update(db=db, user_id=current_user.id, keywords=obj_in.keywords)
 
 
-
 @router.delete("", response_model=schemas.BaseResponse, deprecated=True, name="회원삭제 (개발 테스트용)")
 async def delete_user(
         db: Session = Depends(deps.get_db),

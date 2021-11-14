@@ -15,6 +15,7 @@ class UserCreate(UserBase):
     password: str
     email: EmailStr = "sample@sample.com"
     agree_policy: bool = True
+    fcm_token: Optional[str] = None
 
 
 class UserUpdate(UserBase):

@@ -17,16 +17,6 @@ from app.schemas.comment import CommentCreate, CommentUpdate
 
 class CRUDComment(CRUDBase[Comment, CommentCreate, CommentUpdate]):
     def get_comments_by_review_id(self, db: Session, review_id) -> List[Comment]:
-        """
-        review_user = aliased(models.User)
-        review_obj = db.query(self.model).outerjoin(models.Comment).outerjoin(models.Comment.user).\
-            options(joinedload(self.model.comments).joinedload(models.Comment.user)).\
-            outerjoin(models.ReviewKeyword).options(joinedload(self.model.keywords)).\
-            join(review_user, review_user.id == self.model.user_id).options(joinedload(self.model.user)).\
-            filter(self.model.is_delete == False).filter(self.model.id == review_id).\
-            filter(review_user.is_active == True).\
-            first()
-        """
         comment_obj = db.query(self.model).outerjoin(self.model.user).\
             options(joinedload(self.model.user)).filter(self.model.review_id == review_id).all()
         return comment_obj

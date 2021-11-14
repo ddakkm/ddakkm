@@ -3,8 +3,11 @@ from logging.config import dictConfig
 
 import uvicorn
 from fastapi import FastAPI, Request
+from fastapi.encoders import jsonable_encoder
 from starlette.middleware.cors import CORSMiddleware
+from starlette.responses import Response, JSONResponse
 
+from app import schemas
 from app.core.logging import log_config
 from app.core.config import settings
 from app.controllers.route import api_router
@@ -17,6 +20,9 @@ app = FastAPI(
     title=settings.PROJECT_NAME, openapi_url="/openapi.json", docs_url="/openapi.admin", redoc_url=None
 )
 
+
+app.include_router(api_router, prefix=settings.API_V1_STR)
+
 if settings.BACKEND_CORS_ORIGINS:
     app.add_middleware(
         CORSMiddleware,
@@ -26,7 +32,17 @@ if settings.BACKEND_CORS_ORIGINS:
         allow_headers=["*"],
     )
 
-app.include_router(api_router, prefix=settings.API_V1_STR)
+
+@app.middleware("http")
+async def catch_exceptions_middleware(request: Request, call_next):
+    try:
+        return await call_next(request)
+    except Exception as e:
+        logger.warning(f"Unknown Error Occured: {e}")
+        error_response = jsonable_encoder(
+            schemas.BaseResponse(status="error", object=0, error=str(e))
+        )
+        return JSONResponse(error_response, status_code=500)
 
 
 # 실제 IP 로깅
