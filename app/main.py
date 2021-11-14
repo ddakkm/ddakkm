@@ -20,7 +20,6 @@ app = FastAPI(
     title=settings.PROJECT_NAME, openapi_url="/openapi.json", docs_url="/openapi.admin", redoc_url=None
 )
 
-
 app.include_router(api_router, prefix=settings.API_V1_STR)
 
 if settings.BACKEND_CORS_ORIGINS:
