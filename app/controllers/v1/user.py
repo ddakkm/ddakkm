@@ -206,26 +206,17 @@ async def set_keyword(
     <h1> 유저의 키워드를 설정합니다. </h1>
     """
     user_keywords = crud.user_keyword.get_keywords_by_user_id(db=db, user_id=current_user.id)
+    # 키워드 수정일 경우
     if len(user_keywords) > 0:
-        raise HTTPException(400, "이미 키워드를 설정하였습니다. 키워드 수정 기능을 이용해주세요")
-    crud.user.create_keywords(db=db, user_id=current_user.id, obj_in=obj_in)
+        crud.user_keyword.bulk_update(db=db, user_id=current_user.id, keywords=obj_in.keywords, original_keywords=user_keywords)
+    # 키워드 생성일 경우
+    else:
+        crud.user.create_keywords(db=db, user_id=current_user.id, obj_in=obj_in)
     response = schemas.BaseResponse(
         object=current_user.id, message=f"유저 ID : #{current_user.id}의 관심 키워드가 설정되었습니다."
     )
+    db.commit()
     return response
-
-
-@router.patch("/keyword", name="회원의 키워드 수정", response_model=schemas.BaseResponse)
-async def edit_keyword(
-        *,
-        obj_in: schemas.UserKeywordCreate,
-        db: Session = Depends(deps.get_db),
-        current_user: models.User = Depends(deps.get_current_user)
-) -> schemas.BaseResponse:
-    """
-    <h1> 유저의 키워드를 수정합니다. </h1>
-    """
-    return crud.user_keyword.bulk_update(db=db, user_id=current_user.id, keywords=obj_in.keywords)
 
 
 @router.delete("", response_model=schemas.BaseResponse, deprecated=True, name="회원삭제 (개발 테스트용)")
