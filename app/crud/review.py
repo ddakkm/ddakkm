@@ -1,4 +1,5 @@
 from typing import List
+import logging
 
 from sqlalchemy.orm import Session, joinedload, aliased
 from fastapi.encoders import jsonable_encoder
@@ -15,11 +16,16 @@ from app.schemas.page_response import paginated_query
 from app.utils.user import calculate_birth_year_from_age
 
 
+logger = logging.getLogger('ddakkm_logger')
+
+
 class CRUDReview(CRUDBase[Review, ReviewCreate, ReviewUpdate]):
     def create_by_current_user(self, db: Session, *, obj_in: ReviewCreate, user_id: int):
         # 리뷰 작성을 위한 요청 바디에 포함되어있는 user_id로 서베이를 등록한다.
         survey_create_schema = SurveyA(**jsonable_encoder(obj_in.survey), user_id=user_id)
         survey_id = survey_a.create(db=db, obj_in=survey_create_schema).id
+
+        logger.info(f"리뷰 작성 요청 {jsonable_encoder(obj_in)}")
 
         # 서베이 등록 후 리뷰 등록
         db_obj = self.model(
@@ -109,7 +115,7 @@ class CRUDReview(CRUDBase[Review, ReviewCreate, ReviewUpdate]):
     def update_review(db: Session, *, db_obj: Review, obj_in: ReviewUpdate, current_user: User) -> Review:
         if db_obj.user_id != current_user.id:
             raise HTTPException(401, "이 게시글을 수정할 권한이 없습니다.")
-
+        logger.info(f"리뷰 #{db_obj.id} 수정 요청 {jsonable_encoder(obj_in)}")
         obj_data = jsonable_encoder(db_obj)
         if isinstance(obj_in, dict):
             update_data = obj_in
@@ -149,7 +155,7 @@ class CRUDReview(CRUDBase[Review, ReviewCreate, ReviewUpdate]):
         return review_obj
 
     def get_reviews_by_user_id(self, db: Session, user_id: int) -> List[Review]:
-        result = db.query(self.model).filter(self.model.user_id == user_id).all()
+        result = db.query(self.model).filter(self.model.user_id == user_id).order_by(self.model.created_at.desc()).all()
         return result
 
     def get_reviews_by_ids(self, db: Session, ids: List[int]) -> List[Review]:

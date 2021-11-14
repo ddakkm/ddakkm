@@ -63,7 +63,9 @@ def nickname_randomizer(db: Session = SessionLocal()):
 
 
 def character_image_randomizer() -> str:
+    random.seed(datetime.now())
     i = random.randrange(len(character_images))
+    random.seed(192021)
     return character_images[i]
 
 

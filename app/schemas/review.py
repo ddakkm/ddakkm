@@ -20,7 +20,7 @@ class ReviewParams(BaseModel):
 
 
 class Images(BaseModel):
-    image1_url: Optional[str] = "http//sample.com/1"
+    image1_url: Optional[str] = "https://ddakkm-public.s3.ap-northeast-2.amazonaws.com/images/32c6f15b-3c50-59b3-8d3a-e98bfc223517.jpeg"
     image2_url: Optional[str]
     image3_url: Optional[str]
 

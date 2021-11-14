@@ -1,8 +1,8 @@
+import random
 from typing import Optional, List
 from datetime import datetime
 
 from sqlalchemy.orm import Session
-from fastapi import HTTPException
 from fastapi.encoders import jsonable_encoder
 
 from app import crud, models
@@ -13,7 +13,7 @@ from app.schemas.user import UserCreate, UserUpdate, SNSUserCreate, OauthIn
 from app.schemas.keyword import UserKeywordCreate
 from app.schemas.survey import SurveyType, SurveyCreate, SurveyA, SurveyB, SurveyC
 from app.schemas.response import BaseResponse
-from app.utils.user import nickname_randomizer, character_image_randomizer
+from app.utils.user import nickname_randomizer, character_image_randomizer, character_images
 
 
 class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):

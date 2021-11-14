@@ -101,11 +101,20 @@ async def get_my_profile(
     post_counts = crud.review.get_review_counts_by_user_id(db=db, user_id=current_user.id)
     comment_counts = crud.comment.get_comment_counts_by_user_id(db=db, user_id=current_user.id)
     like_counts = crud.user_like.get_like_counts_by_user_id(db=db, user_id=current_user.id)
+    # 가입설문이 A인 경우
     if user.join_survey_code == models.JoinSurveyCode.A:
         details = {"vaccine_round": user.survey_a.vaccine_round,
                    "vaccine_type": user.survey_a.vaccine_type,
                    "is_crossed": user.survey_a.is_crossed}
         vaccine_status = schemas.VaccineStatus(join_survey_code=user.join_survey_code, details=details)
+
+    # 가입설문이 A가 아니지만, 자유 후기 작성으로 A 타입을 채운경우
+    elif user.join_survey_code != models.JoinSurveyCode.A and post_counts > 0:
+        latest_review = crud.review.get_reviews_by_user_id(db=db, user_id=current_user.id)[0]
+        details = {"vaccine_round": latest_review.survey.vaccine_round,
+                   "vaccine_type": latest_review.survey.vaccine_type,
+                   "is_crossed": latest_review.survey.is_crossed}
+        vaccine_status = schemas.VaccineStatus(join_survey_code=models.JoinSurveyCode.A, details=details)
 
     else:
         vaccine_status = schemas.VaccineStatus(join_survey_code=user.join_survey_code)
