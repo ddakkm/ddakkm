@@ -73,3 +73,8 @@ class ReviewResponse(ReviewBase):
     comment_count: int
     user_is_like: bool
 
+
+# Review Model for API Response
+class ReviewContentResponse(ReviewBase):
+    keywords: List[str] = ["심근염/심낭염"]
+    images: Optional[Images]

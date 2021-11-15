@@ -149,7 +149,7 @@ async def create_images(
     return uploaded_files
 
 
-@router.get("/{review_id}", response_model=schemas.Review, name="리뷰 상세보기 (댓글과 대댓글까지)")
+@router.get("/{review_id}", response_model=schemas.Review, name="리뷰 상세보기")
 async def get_review_details(
         review_id: int,
         db: Session = Depends(deps.get_db),
@@ -244,6 +244,18 @@ async def delete_review(
         object=db_obj.id, message=f"리뷰 ID : #{db_obj.id}가 삭제되었습니다."
     )
     return response
+
+
+@router.get("/{review_id}/content", name="설문 내용 없이 리뷰의 내용만 불러오기", response_model=schemas.ReviewContentResponse)
+async def get_review_content(
+        review_id: int,
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_user)
+) -> schemas.ReviewContentResponse:
+    review = crud.review.get_review(db=db, id=review_id)
+    review_keyword = crud.review_keyword.get_keywords_by_review_id(db=db, review_id=review_id)
+    keywords = [keyword.keyword for keyword in review_keyword]
+    return schemas.ReviewContentResponse(content=review.content, images=review.images, keywords=keywords)
 
 
 # TODO : 백그라운드 테스크 celery 로 변경
