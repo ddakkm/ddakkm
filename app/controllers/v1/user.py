@@ -80,6 +80,18 @@ async def create_join_survey(
     return response
 
 
+@router.get("/me/like", response_model=List[int], name="내가 좋아요한 리뷰 ID 목록 불러오기")
+async def get_my_likes(
+        *,
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_user)
+) -> List[int]:
+    return [
+        jsonable_encoder(review_id).get("review_id")
+        for review_id in crud.user_like.get_review_id_by_user_id(db=db, user_id=current_user.id)
+    ]
+
+
 @router.get("/me/profile", response_model=schemas.UserProfileResponse, name="내 프로필 확인")
 async def get_my_profile(
         *,
@@ -121,8 +133,118 @@ async def get_my_profile(
                                        post_counts=post_counts, comment_counts=comment_counts, like_counts=like_counts)
 
 
+@router.get("/me/post", response_model=List[schemas.UserProfilePostResponse], name="내가 쓴 글 확인")
+async def get_my_posts(
+        *,
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_user)
+) -> Any:
+    """
+    <h1> 내가 올린 후기들의 리스트를 불러옵니다. </h1>
+    2회차-화이자-교차접종 /// 1회차-모더나 /// 등등의 제목을 만들기 위해 "vaccine_status"라는 Object를 줍니다. </br>
+    </br>
+    이 "vaccine_status"라는 Object는 회원 프로필을 가져오는 API __([GET] /v1/user/me/profile)에서 사용되는 "vaccine_status"와 동일__합니다. </br>
+    __다만__ 회원 프로필을 가져오는 API에서는 회원들이 입력한 survey_code가 다양할 수 있기 때문에 "vaccine_status" object의 "join_survey_code" 값이
+    A, B, C, null 중 하나이지만, </br>
+    __본 API에서는__ 모든 후기가 "A" 타입의 survey이며, join_survey도 아니기 때문에 해당 값은 항상 null 입니다.
+    """
+    user_reviews_model = crud.review.get_reviews_by_user_id(db=db, user_id=current_user.id)
+    user_reviews = [schemas.UserProfilePostResponse(
+        id=review.id,
+        nickname=review.user.nickname,
+        like_count=len(review.user_like),
+        comment_count=len(review.comments),
+        created_at=review.created_at,
+        vaccine_status=schemas.VaccineStatus(join_survey_code=None,
+                                             details={"vaccine_round": review.survey.vaccine_round,
+                                                      "vaccine_type": review.survey.vaccine_type,
+                                                      "is_crossed": review.survey.is_crossed}),
+        ) for review in user_reviews_model]
+    return user_reviews
+
+
+@router.get("/me/push", response_model=schemas.PushStatusResponse, name="푸시알림 동의 여부 확인 (키워드/활동 둘다)")
+async def get_agree_push_status(
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_user)
+) -> schemas.PushStatusResponse:
+    """
+    <h1> push 알림 수신 동의 여부를 확인합니다. </h1>
+    """
+    """
+    <h1>푸시알림수신 동의 여부 및 회원가입 설문의 상태를 리턴합니다.</h1>
+    """
+    user = crud.user.get(db=db, id=current_user.id)
+    return schemas.PushStatusResponse(
+        agree_activity_push=user.agree_activity_push,
+        agree_keyword_push=user.agree_keyword_push
+    )
+
+
+@router.post("/push/keyword", name="키워드 푸시 알림 동의 상태 변경", response_model=schemas.BaseResponse)
+async def change_push_status(
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_user)
+) -> schemas.BaseResponse:
+    """
+    <h1> 키워드 push 알림 수신 동의 여부를 변경합니다. </h1>
+    동의 상태의 유저가 호출하면 동의 상태를 false 로 // 비동의 상태의 유저가 호출하면 동의 상태가 true가 됩니다. </br>
+    </br>
+    ```동의 / 동의취소 따로 만들어야하면 말해주세요.```
+    """
+    return crud.user.change_user_agree_keyword_push_status(db=db, current_user=current_user)
+
+
+@router.post("/push/activity", name="활동 푸시 알림 동의 상태 변경", response_model=schemas.BaseResponse)
+async def change_push_status(
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_user)
+) -> schemas.BaseResponse:
+    """
+    <h1> 활동 push 알림 수신 동의 여부를 변경합니다. </h1>
+    동의 상태의 유저가 호출하면 동의 상태를 false 로 // 비동의 상태의 유저가 호출하면 동의 상태가 true가 됩니다. </br>
+    </br>
+    ```동의 / 동의취소 따로 만들어야하면 말해주세요.```
+    """
+    return crud.user.change_user_agree_activity_push_status(db=db, current_user=current_user)
+
+
+@router.get("/keyword", name="회원의 키워드 목록 가져오기", response_model=List[str])
+async def get_keyword(
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_user)
+) -> List[str]:
+    user_keywords_model = crud.user_keyword.get_keywords_by_user_id(db=db, user_id=current_user.id)
+    user_keywords = [dict(keyword).get("keyword") for keyword in user_keywords_model]
+    return user_keywords
+
+
+@router.post("/keyword", name="회원의 키워드 설정", response_model=schemas.BaseResponse)
+async def set_keyword(
+        *,
+        obj_in: schemas.UserKeywordCreate,
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_user)
+) -> schemas.BaseResponse:
+    """
+    <h1> 유저의 키워드를 설정합니다. </h1>
+    """
+    user_keywords = crud.user_keyword.get_keywords_by_user_id(db=db, user_id=current_user.id)
+    # 키워드 수정일 경우
+    if len(user_keywords) > 0:
+        crud.user_keyword.bulk_update(db=db, user_id=current_user.id, keywords=obj_in.keywords, original_keywords=user_keywords)
+    # 키워드 생성일 경우
+    else:
+        crud.user.create_keywords(db=db, user_id=current_user.id, obj_in=obj_in)
+    response = schemas.BaseResponse(
+        object=current_user.id, message=f"유저 ID : #{current_user.id}의 관심 키워드가 설정되었습니다."
+    )
+    db.commit()
+    return response
+
+
 # TODO 접근 권한
-@router.get("/{user_id}/profile")
+@router.get("/{user_id}/profile", response_model=schemas.UserProfileResponse, name="유저의 프로필 확인")
 async def get_user_profile(
         user_id: int,
         *,
@@ -166,36 +288,6 @@ async def get_user_profile(
                                        post_counts=post_counts, comment_counts=comment_counts, like_counts=like_counts)
 
 
-@router.get("/me/post", response_model=List[schemas.UserProfilePostResponse], name="내가 쓴 글 확인")
-async def get_my_posts(
-        *,
-        db: Session = Depends(deps.get_db),
-        current_user: models.User = Depends(deps.get_current_user)
-) -> Any:
-    """
-    <h1> 내가 올린 후기들의 리스트를 불러옵니다. </h1>
-    2회차-화이자-교차접종 /// 1회차-모더나 /// 등등의 제목을 만들기 위해 "vaccine_status"라는 Object를 줍니다. </br>
-    </br>
-    이 "vaccine_status"라는 Object는 회원 프로필을 가져오는 API __([GET] /v1/user/me/profile)에서 사용되는 "vaccine_status"와 동일__합니다. </br>
-    __다만__ 회원 프로필을 가져오는 API에서는 회원들이 입력한 survey_code가 다양할 수 있기 때문에 "vaccine_status" object의 "join_survey_code" 값이
-    A, B, C, null 중 하나이지만, </br>
-    __본 API에서는__ 모든 후기가 "A" 타입의 survey이며, join_survey도 아니기 때문에 해당 값은 항상 null 입니다.
-    """
-    user_reviews_model = crud.review.get_reviews_by_user_id(db=db, user_id=current_user.id)
-    user_reviews = [schemas.UserProfilePostResponse(
-        id=review.id,
-        nickname=review.user.nickname,
-        like_count=len(review.user_like),
-        comment_count=len(review.comments),
-        created_at=review.created_at,
-        vaccine_status=schemas.VaccineStatus(join_survey_code=None,
-                                             details={"vaccine_round": review.survey.vaccine_round,
-                                                      "vaccine_type": review.survey.vaccine_type,
-                                                      "is_crossed": review.survey.is_crossed}),
-        ) for review in user_reviews_model]
-    return user_reviews
-
-
 @router.get("/{user_id}/post", response_model=List[schemas.UserProfilePostResponse], name="다른 회원이 쓴 글 확인")
 async def get_user_posts(
         *,
@@ -230,58 +322,6 @@ async def get_user_posts(
     return user_reviews
 
 
-@router.get("/push", response_model=schemas.PushStatusResponse, name="푸시알림 동의 여부 확인 (키워드/활동 둘다)")
-async def get_agree_push_status(
-        db: Session = Depends(deps.get_db),
-        current_user: models.User = Depends(deps.get_current_user)
-) -> schemas.PushStatusResponse:
-    """
-    <h1> push 알림 수신 동의 여부를 확인합니다. </h1>
-    """
-    """
-    <h1>푸시알림수신 동의 여부 및 회원가입 설문의 상태를 리턴합니다.</h1>
-    """
-    user = crud.user.get(db=db, id=current_user.id)
-    return schemas.PushStatusResponse(
-        agree_activity_push=user.agree_activity_push,
-        agree_keyword_push=user.agree_keyword_push
-    )
-
-
-@router.get("/keyword", name="회원의 키워드 목록 가져오기", response_model=List[str])
-async def get_keyword(
-        db: Session = Depends(deps.get_db),
-        current_user: models.User = Depends(deps.get_current_user)
-) -> List[str]:
-    user_keywords_model = crud.user_keyword.get_keywords_by_user_id(db=db, user_id=current_user.id)
-    user_keywords = [dict(keyword).get("keyword") for keyword in user_keywords_model]
-    return user_keywords
-
-
-@router.post("/keyword", name="회원의 키워드 설정", response_model=schemas.BaseResponse)
-async def set_keyword(
-        *,
-        obj_in: schemas.UserKeywordCreate,
-        db: Session = Depends(deps.get_db),
-        current_user: models.User = Depends(deps.get_current_user)
-) -> schemas.BaseResponse:
-    """
-    <h1> 유저의 키워드를 설정합니다. </h1>
-    """
-    user_keywords = crud.user_keyword.get_keywords_by_user_id(db=db, user_id=current_user.id)
-    # 키워드 수정일 경우
-    if len(user_keywords) > 0:
-        crud.user_keyword.bulk_update(db=db, user_id=current_user.id, keywords=obj_in.keywords, original_keywords=user_keywords)
-    # 키워드 생성일 경우
-    else:
-        crud.user.create_keywords(db=db, user_id=current_user.id, obj_in=obj_in)
-    response = schemas.BaseResponse(
-        object=current_user.id, message=f"유저 ID : #{current_user.id}의 관심 키워드가 설정되었습니다."
-    )
-    db.commit()
-    return response
-
-
 @router.delete("", response_model=schemas.BaseResponse, deprecated=True, name="회원삭제 (개발 테스트용)")
 async def delete_user(
         db: Session = Depends(deps.get_db),
@@ -294,7 +334,7 @@ async def delete_user(
     return crud.user.delete_by_user_id(db=db, user_id=current_user.id)
 
 
-@router.get("/me/comment", response_model=List[schemas.UserProfilePostResponse], deprecated=True, name="내가 쓴 댓글 확인")
+@router.get("/me/comment-posts", response_model=List[schemas.UserProfilePostResponse], deprecated=True, name="내가 쓴 댓글 확인")
 async def get_my_comments(
         *,
         db: Session = Depends(deps.get_db),
@@ -328,7 +368,7 @@ async def get_my_comments(
     return reviews
 
 
-@router.get("/me/like", response_model=List[schemas.UserProfilePostResponse], deprecated=True, name="내가 좋아요 한 글 확인")
+@router.get("/me/like-posts", response_model=List[schemas.UserProfilePostResponse], deprecated=True, name="내가 좋아요 한 글 확인")
 async def get_user_info(
         *,
         db: Session = Depends(deps.get_db),
@@ -362,29 +402,3 @@ async def get_user_info(
     return reviews
 
 
-@router.post("/push/keyword", name="키워드 푸시 알림 동의 상태 변경", deprecated=True)
-async def change_push_status(
-        db: Session = Depends(deps.get_db),
-        current_user: models.User = Depends(deps.get_current_user)
-) -> models.User:
-    """
-    <h1> 키워드 push 알림 수신 동의 여부를 변경합니다. </h1>
-    동의 상태의 유저가 호출하면 동의 상태를 false 로 // 비동의 상태의 유저가 호출하면 동의 상태가 true가 됩니다. </br>
-    </br>
-    ```동의 / 동의취소 따로 만들어야하면 말해주세요.```
-    """
-    return crud.user.change_user_agree_keyword_push_status(db=db, current_user=current_user)
-
-
-@router.post("/push/activity", name="활동 푸시 알림 동의 상태 변경", deprecated=True)
-async def change_push_status(
-        db: Session = Depends(deps.get_db),
-        current_user: models.User = Depends(deps.get_current_user)
-) -> models.User:
-    """
-    <h1> 활동 push 알림 수신 동의 여부를 변경합니다. </h1>
-    동의 상태의 유저가 호출하면 동의 상태를 false 로 // 비동의 상태의 유저가 호출하면 동의 상태가 true가 됩니다. </br>
-    </br>
-    ```동의 / 동의취소 따로 만들어야하면 말해주세요.```
-    """
-    return crud.user.change_user_agree_activity_push_status(db=db, current_user=current_user)

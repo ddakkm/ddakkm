@@ -5,7 +5,7 @@ from datetime import datetime
 from sqlalchemy.orm import Session
 from fastapi.encoders import jsonable_encoder
 
-from app import crud, models
+from app import crud, models, schemas
 from app.core.security import get_password_hash, verify_password
 from app.crud.base import CRUDBase
 from app.models.users import User, JoinSurveyCode, SnsProviderType, UserKeyword
@@ -128,31 +128,42 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
         return BaseResponse(message=f"유저 #{user.id}가 비활성화 되었습니다.", object=user_id)
 
     @staticmethod
-    def change_user_agree_keyword_push_status(db: Session, current_user: User):
+    def change_user_agree_keyword_push_status(db: Session, current_user: User) -> schemas.BaseResponse:
         if current_user.agree_keyword_push is False:
             current_user.agree_keyword_push = True
             db.add(current_user)
             db.commit()
             db.refresh(current_user)
+            return schemas.BaseResponse(
+                object=current_user.id, message=f"유저 ID : #{current_user.id}의 키워드 알림 수신 여부가 \"동의\"로 변경되었습니다."
+            )
         else:
             current_user.agree_keyword_push = False
             db.add(current_user)
             db.commit()
             db.refresh(current_user)
-        return current_user
+            return schemas.BaseResponse(
+                object=current_user.id, message=f"유저 ID : #{current_user.id}의 키워드 알림 수신 여부가 \"거부\"로 변경되었습니다."
+            )
 
     @staticmethod
-    def change_user_agree_activity_push_status(db: Session, current_user: User):
+    def change_user_agree_activity_push_status(db: Session, current_user: User) -> schemas.BaseResponse:
         if current_user.agree_activity_push is False:
             current_user.agree_activity_push = True
             db.add(current_user)
             db.commit()
             db.refresh(current_user)
+            return schemas.BaseResponse(
+                object=current_user.id, message=f"유저 ID : #{current_user.id}의 활동 알림 수신 여부가 \"동의\"로 변경되었습니다."
+            )
         else:
             current_user.agree_activity_push = False
             db.add(current_user)
             db.commit()
             db.refresh(current_user)
+            return schemas.BaseResponse(
+                object=current_user.id, message=f"유저 ID : #{current_user.id}의 활동 알림 수신 여부가 \"거부\"로 변경되었습니다."
+            )
         return current_user
 
     @staticmethod
