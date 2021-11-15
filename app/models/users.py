@@ -38,8 +38,8 @@ class User(Base):
     age = Column(Integer, default=1980)
     join_survey_code = Column(Enum(JoinSurveyCode), default=JoinSurveyCode.NONE)
     agree_policy = Column(Boolean, nullable=False)
-    agree_keyword_push = Column(Boolean, nullable=False)
-    agree_activity_push = Column(Boolean, nullable=False)
+    agree_keyword_push = Column(Boolean, nullable=False, default=True)
+    agree_activity_push = Column(Boolean, nullable=False, default=True)
     character_image = Column(String(100))
     fcm_token = Column(String(300))
 

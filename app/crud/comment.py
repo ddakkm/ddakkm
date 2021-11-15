@@ -10,10 +10,6 @@ from app.models.comments import Comment
 from app.utils.review import check_is_deleted
 from app.schemas.comment import CommentCreate, CommentUpdate
 
-# TODO 삭제된 회원의 리뷰는 리스트에 포함되지 않으며 상세보기에서 볼 수 없다.
-# TODO 삭제된 댓글은 보여지되 내용과 작성자가 "삭제됨"으로 표현된다.
-# TODO 그렇다면 삭제된 회원의 댓글은 어떻게 처리해야하는가?
-
 
 class CRUDComment(CRUDBase[Comment, CommentCreate, CommentUpdate]):
     def get_comments_by_review_id(self, db: Session, review_id) -> List[Comment]:

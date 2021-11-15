@@ -80,7 +80,6 @@ async def create_join_survey(
     return response
 
 
-# TODO A타입 vaccine_round 는 최신 survey에서 가져와야 함
 @router.get("/me/profile", response_model=schemas.UserProfileResponse, name="내 프로필 확인")
 async def get_my_profile(
         *,
@@ -111,6 +110,51 @@ async def get_my_profile(
     # 가입설문이 A가 아니지만, 자유 후기 작성으로 A 타입을 채운경우
     elif user.join_survey_code != models.JoinSurveyCode.A and post_counts > 0:
         latest_review = crud.review.get_reviews_by_user_id(db=db, user_id=current_user.id)[0]
+        details = {"vaccine_round": latest_review.survey.vaccine_round,
+                   "vaccine_type": latest_review.survey.vaccine_type,
+                   "is_crossed": latest_review.survey.is_crossed}
+        vaccine_status = schemas.VaccineStatus(join_survey_code=models.JoinSurveyCode.A, details=details)
+
+    else:
+        vaccine_status = schemas.VaccineStatus(join_survey_code=user.join_survey_code)
+    return schemas.UserProfileResponse(vaccine_status=vaccine_status, character_image=user.character_image, nickname=user.nickname,
+                                       post_counts=post_counts, comment_counts=comment_counts, like_counts=like_counts)
+
+
+# TODO 접근 권한
+@router.get("/{user_id}/profile")
+async def get_user_profile(
+        user_id: int,
+        *,
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_user)
+) -> schemas.UserProfileResponse:
+    """
+    <h1> 회원 정보 요약본을 가져옵니다. </h2> </br>
+    __vaccine_status__이하 __join_survey_code__에서 유저가 어떤 설문을 선택했는지를 반환합니다. </br>
+    __join_survey_code__의 값이 A인 유저는 __vaccine_status__의 하위 속성으로 __details__라는 object를 갖는데,
+    이곳에서 __vaccine_round__(몇차수인지), __vaccine_type__(어떤 백신인지), __is_crossed__(교차접종인지)에 대한 정보를 함께 반환합니다. </br>
+    </br>
+    __join_survey_code__의 값이 B인 유저는 접종예정 유저로 접종 내역이 없기 때문에 __details__라는 object는 null 값을 반환합니다. </br>
+    </br>
+    __join_survey_code__의 값이 C나 NONE인 유저는 미접종 유저로 접종 내역이 없기 때문에 __details__라는 object는 null 값을 반환합니다. </br>
+    """
+    user = crud.user.get(db=db, id=user_id)
+    if user is None or user.is_active is False:
+        raise HTTPException(404, "해당 회원을 찾을 수 없습니다.")
+    post_counts = crud.review.get_review_counts_by_user_id(db=db, user_id=user_id)
+    comment_counts = crud.comment.get_comment_counts_by_user_id(db=db, user_id=user_id)
+    like_counts = crud.user_like.get_like_counts_by_user_id(db=db, user_id=user_id)
+    # 가입설문이 A인 경우
+    if user.join_survey_code == models.JoinSurveyCode.A:
+        details = {"vaccine_round": user.survey_a.vaccine_round,
+                   "vaccine_type": user.survey_a.vaccine_type,
+                   "is_crossed": user.survey_a.is_crossed}
+        vaccine_status = schemas.VaccineStatus(join_survey_code=user.join_survey_code, details=details)
+
+    # 가입설문이 A가 아니지만, 자유 후기 작성으로 A 타입을 채운경우
+    elif user.join_survey_code != models.JoinSurveyCode.A and post_counts > 0:
+        latest_review = crud.review.get_reviews_by_user_id(db=db, user_id=user_id)[0]
         details = {"vaccine_round": latest_review.survey.vaccine_round,
                    "vaccine_type": latest_review.survey.vaccine_type,
                    "is_crossed": latest_review.survey.is_crossed}
@@ -168,9 +212,10 @@ async def get_user_posts(
     A, B, C, null 중 하나이지만, </br>
     __본 API에서는__ 모든 후기가 "A" 타입의 survey이며, join_survey도 아니기 때문에 해당 값은 항상 null 입니다.
     """
+    user = crud.user.get(db=db, id=user_id)
+    if user is None or user.is_active is False:
+        raise HTTPException(404, "해당 회원을 찾을 수 없습니다.")
     user_reviews_model = crud.review.get_reviews_by_user_id(db=db, user_id=user_id)
-    if len(user_reviews_model) == 0:
-        raise HTTPException(404, "회원을 찾을 수 없습니다.")
     user_reviews = [schemas.UserProfilePostResponse(
         id=review.id,
         nickname=review.user.nickname,
@@ -183,6 +228,24 @@ async def get_user_posts(
                                                       "is_crossed": review.survey.is_crossed}),
         ) for review in user_reviews_model]
     return user_reviews
+
+
+@router.get("/push", response_model=schemas.PushStatusResponse, name="푸시알림 동의 여부 확인 (키워드/활동 둘다)")
+async def get_agree_push_status(
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_user)
+) -> schemas.PushStatusResponse:
+    """
+    <h1> push 알림 수신 동의 여부를 확인합니다. </h1>
+    """
+    """
+    <h1>푸시알림수신 동의 여부 및 회원가입 설문의 상태를 리턴합니다.</h1>
+    """
+    user = crud.user.get(db=db, id=current_user.id)
+    return schemas.PushStatusResponse(
+        agree_activity_push=user.agree_activity_push,
+        agree_keyword_push=user.agree_keyword_push
+    )
 
 
 @router.get("/keyword", name="회원의 키워드 목록 가져오기", response_model=List[str])
@@ -297,24 +360,6 @@ async def get_user_info(
                                                       "is_crossed": review.survey.is_crossed}),
         ) for review in reviews_model]
     return reviews
-
-
-@router.get("/push", response_model=schemas.PushStatusResponse, name="푸시알림 동의 여부 확인 (키워드/활동 둘다)", deprecated=True)
-async def get_agree_push_status(
-        db: Session = Depends(deps.get_db),
-        current_user: models.User = Depends(deps.get_current_user)
-) -> schemas.PushStatusResponse:
-    """
-    <h1> push 알림 수신 동의 여부를 확인합니다. </h1>
-    """
-    """
-    <h1>푸시알림수신 동의 여부 및 회원가입 설문의 상태를 리턴합니다.</h1>
-    """
-    user = crud.user.get(db=db, id=current_user.id)
-    return schemas.PushStatusResponse(
-        agree_activity_push=user.agree_activity_push,
-        agree_keyword_push=user.agree_keyword_push
-    )
 
 
 @router.post("/push/keyword", name="키워드 푸시 알림 동의 상태 변경", deprecated=True)

@@ -24,6 +24,7 @@ class NestedComment(CommentBase):
     created_at: datetime
     is_delete: bool
     user_is_like: bool
+    user_is_active: bool
 
 
 class Comment(CommentBase):
@@ -34,6 +35,7 @@ class Comment(CommentBase):
     created_at: datetime
     is_delete: bool
     user_is_like: bool
+    user_is_active: bool
     nested_comment: Optional[List[NestedComment]]
 
     class Config:

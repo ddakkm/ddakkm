@@ -196,7 +196,6 @@ async def get_review_details(
         survey=review_obj.survey,
         is_writer=review_obj.user_id == current_user.id,
         nickname=review_obj.user.nickname,
-        # comments=comment_model_to_dto(review_obj.comments),
         keywords=[review_keyword.keyword for review_keyword in review_obj.keywords],
         like_count=review_obj.like_count,
         comment_count=crud.comment.get_comment_counts_by_review_id(db=db, review_id=review_id),
