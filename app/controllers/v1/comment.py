@@ -46,11 +46,38 @@ async def create_nested_comment(
     </br>
     댓글 내용은 {"content": "댓글 내용"} <- 형식의 json Body로 받고,  </br>
     글을 작성하고자 하는 review_id 와 대댓글의 comment_id 를 Path Parameter 로 받습니다.
+    ```
+    댓글을 불러올 때, comment_id 를 사용하지 않고, review_id 를 사용하기 떄문에 object에 review_id를 넣어 리턴합니다.
+    혹시 수정이 필요하면 말해주세요.
+    ```
     """
     result = crud.comment.create_nested_comment(
         db, obj_in=comment_in, current_user=current_user, comment_id=comment_id)
     response = schemas.BaseResponse(
         object=result.review_id, message=f"리뷰 ID : #{result.review_id}에 댓글 ID : #{result.id}가 생성되었습니다(대댓글). 댓글 내용 : {result.content}"
+    )
+    return response
+
+
+@router.patch("/{comment_id}", name="댓글/대댓글 수정", response_model=schemas.BaseResponse)
+async def edit_comment(
+        comment_id: int,
+        obj_in: schemas.CommentUpdate,
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_user)
+) -> schemas.BaseResponse:
+    """
+    <h1> 댓글 혹은 대댓글을 수정합니다. (댓글과 대댓글 모두 comment_id를 갖고있습니다.) </h1> </br>
+    </br>
+    수정에 성공하면 response의 object에 __리뷰 ID__를 포함하여 리턴합니다.
+    ```
+    댓글을 불러올 때, comment_id 를 사용하지 않고, review_id 를 사용하기 떄문에 object에 review_id를 넣어 리턴합니다.
+    혹시 수정이 필요하면 말해주세요.
+    ```
+    """
+    result = crud.comment.edit_comment(db=db, id=comment_id, obj_in=obj_in, user_id=current_user.id)
+    response = schemas.BaseResponse(
+        object=result.review_id, message=f"리뷰 ID : #{result.review_id}의 댓글 ID : #{result.id}가 수정되었습니다."
     )
     return response
 
@@ -65,12 +92,18 @@ async def delete_comment(
     <h1> 코멘트를 삭제합니다. </h1> </br>
     </br>
     Path Parameter 로 입력된 코멘트가 없는 경우 404 에러를 반환합니다.
+    ```
+    댓글을 불러올 때, comment_id 를 사용하지 않고, review_id 를 사용하기 떄문에 object에 review_id를 넣어 리턴합니다.
+    혹시 수정이 필요하면 말해주세요.
+    ```
     """
     db_obj = crud.comment.get_comment(db, comment_id)
     if db_obj.is_delete is True:
         raise HTTPException(400, "이미 삭제된 코멘트입니다.")
     result = crud.comment.set_comment_status_as_deleted(db, db_obj=db_obj, current_user=current_user)
-    response = schemas.BaseResponse(object=result.id, message=f"댓글 ID : #{result.id}가 삭제상태로 변경되었습니다.")
+    response = schemas.BaseResponse(
+        object=result.review_id, message=f"리뷰 ID : #{result.review_id}의 댓글 ID : #{result.id}가 삭제상태로 변경되었습니다."
+    )
     return response
 
 
@@ -100,16 +133,17 @@ async def report_comment(
     """
     report_reason = get_report_reason(reason.reason)
     subject = f"[ddakkm 댓글 신고] 댓글 ID {comment_id}"
-    comment_content = crud.comment.get_comment(db, comment_id).content
+    comment = crud.comment.get_comment(db, comment_id)
+    content = comment.content
     text = f"""
-    신고 댓글 내용: {comment_content}
+    신고 댓글 내용: {content}
     신고자_ID: {current_user.id}
     신고자_닉네임: {current_user.nickname}
     신고사유: {report_reason}
     """
     background_task.add_task(email_sender, subject=subject, text=text, to=EmailStr(settings.SMTP_USER))
     response = schemas.BaseResponse(
-        object=comment_id, message=f"댓글 ID : #{comment_id}가 신고처리되었습니다. 제목 \"{subject}\"으로 상세내용이 발송되었습니다.")
+        object=comment.review_id, message=f"리뷰 ID : #{comment.review_id}의 댓글 ID : #{comment_id}가 신고처리되었습니다. 제목 \"{subject}\"으로 상세내용이 발송되었습니다.")
     return response
 
 

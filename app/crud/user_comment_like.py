@@ -24,7 +24,7 @@ class CRUDUserCommentLike(CRUDBase[UserCommentLike, UserCommentLikeCreate, UserC
             db.commit()
             db.refresh(comment)
             response = schemas.BaseResponse(
-                object=comment_id, message=f"댓글 ID : #{comment_id}에 대해 유저 ID : #{current_user.id}가 좋아요를 취소했습니다."
+                object=comment.review_id, message=f"리뷰 ID : #{comment.review_id}의 댓글 ID : #{comment_id}에 대해 유저 ID : #{current_user.id}가 좋아요를 취소했습니다."
             )
             return response
 
@@ -37,7 +37,7 @@ class CRUDUserCommentLike(CRUDBase[UserCommentLike, UserCommentLikeCreate, UserC
             db.commit()
             db.refresh(db_obj)
             response = schemas.BaseResponse(
-                object=comment_id, message=f"댓글 ID : #{comment_id}에 대해 유저 ID : #{current_user.id}가 좋아요하였습니다."
+                object=comment.review_id, message=f"리뷰 ID : #{comment.review_id}의 댓글 ID : #{comment_id}에 대해 유저 ID : #{current_user.id}가 좋아요하였습니다."
             )
             return response
 

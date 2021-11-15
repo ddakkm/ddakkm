@@ -23,6 +23,16 @@ class CRUDComment(CRUDBase[Comment, CommentCreate, CommentUpdate]):
             raise HTTPException(404, "댓글을 찾을 수 없습니다.")
         return comment_obj
 
+    def edit_comment(self, db: Session, id: int, obj_in: CommentUpdate, user_id: int) -> Comment:
+        db_obj = db.query(self.model).filter(self.model.id == id).first()
+        if db_obj is None or db_obj.user_id != user_id or db_obj.is_delete is True:
+            raise HTTPException(401, "수정 권한이 없는 댓글입니다.")
+        db_obj.content = obj_in.content
+        db.add(db_obj)
+        db.commit()
+        db.refresh(db_obj)
+        return db_obj
+
     def create_by_current_user(self, db: Session, *, obj_in: CommentCreate, current_user: User, review_id: int) -> Comment:
         db_obj = self.model(
             user_id=current_user.id,
