@@ -34,7 +34,7 @@ async def get_comment_list(
     return comment_model_to_dto(comments, comment_ids_like_by_user)
 
 
-@router.get("/{comment_id}/content", name="댓글(대댓글) 가져오기", response_model=schemas.CommentBase)
+@router.get("/{comment_id}/content", name="댓글(대댓글) 내용 가져오기", response_model=schemas.CommentBase)
 async def get_comment_content(
         comment_id: int,
         db: Session = Depends(deps.get_db),

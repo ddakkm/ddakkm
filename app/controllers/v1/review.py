@@ -252,6 +252,11 @@ async def get_review_content(
         db: Session = Depends(deps.get_db),
         current_user: models.User = Depends(deps.get_current_user)
 ) -> schemas.ReviewContentResponse:
+    """
+    <h1> 설문 내용 없이 리뷰의 내용만 불러옵니다. </h1> </br>
+    </br>
+    리뷰 수정시 폼을 채우기 위한 기본 정보만 리턴하는 API 입니다.
+    """
     review = crud.review.get_review(db=db, id=review_id)
     review_keyword = crud.review_keyword.get_keywords_by_review_id(db=db, review_id=review_id)
     keywords = [keyword.keyword for keyword in review_keyword]
