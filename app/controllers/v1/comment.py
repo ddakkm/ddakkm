@@ -34,6 +34,19 @@ async def get_comment_list(
     return comment_model_to_dto(comments, comment_ids_like_by_user)
 
 
+@router.get("/{comment_id}/content", name="댓글(대댓글) 가져오기", response_model=schemas.CommentBase)
+async def get_comment_content(
+        comment_id: int,
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_user)
+) -> schemas.CommentBase:
+    """
+    <h1> 댓글(대댓글) ID로 댓글(대댓글)의 내용을 가져옵니다. </h1>
+    """
+    comment = crud.comment.get_comment(db=db, id=comment_id)
+    return schemas.CommentBase(content=comment.content)
+
+
 @router.post("/{comment_id}", name="대댓글 작성", response_model=schemas.BaseResponse)
 async def create_nested_comment(
         comment_id: int,
@@ -59,7 +72,7 @@ async def create_nested_comment(
     return response
 
 
-@router.patch("/{comment_id}", name="댓글/대댓글 수정", response_model=schemas.BaseResponse)
+@router.patch("/{comment_id}", name="댓글(대댓글) 수정", response_model=schemas.BaseResponse)
 async def edit_comment(
         comment_id: int,
         obj_in: schemas.CommentUpdate,
