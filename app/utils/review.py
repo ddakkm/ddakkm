@@ -2,6 +2,7 @@ import random
 
 from fastapi import HTTPException
 
+from app import schemas
 from app.schemas.survey import SurveyAData
 from app.models.reviews import Review
 
@@ -34,6 +35,25 @@ def symtom_randomizer(symtom: dict) -> dict:
 def check_is_deleted(review: Review):
     if review.is_delete is True:
         raise HTTPException(400, "이미 삭제된 리뷰입니다.")
+
+
+def image_url_wrapper(review_in: schemas.ReviewCreate) -> schemas.Images:
+    image1_url = None
+    image2_url = None
+    image3_url = None
+    if review_in.images.image1_url:
+        image1_url = str(review_in.images.image1_url).replace("\'", "\"")
+    if review_in.images.image2_url:
+        image2_url = str(review_in.images.image2_url).replace("\'", "\"")
+    if review_in.images.image3_url:
+        image3_url = str(review_in.images.image3_url).replace("\'", "\"")
+
+    wrapped = schemas.Images(
+        image1_url=image1_url,
+        image2_url=image2_url,
+        image3_url=image3_url
+    )
+    return wrapped
 
 
 if __name__ == "__main__":

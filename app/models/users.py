@@ -44,6 +44,7 @@ class User(Base):
     fcm_token = Column(String(300))
 
     # One to One
+    # TODO survey_a 1:Many 로 수정
     survey_a = relationship("SurveyA", back_populates="user", uselist=False, join_depth=1, lazy="joined")
     survey_b = relationship("SurveyB", back_populates="user", uselist=False, join_depth=1, lazy="joined")
     survey_c = relationship("SurveyC", back_populates="user", uselist=False, join_depth=1, lazy="joined")

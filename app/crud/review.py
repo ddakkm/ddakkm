@@ -32,6 +32,7 @@ class CRUDReview(CRUDBase[Review, ReviewCreate, ReviewUpdate]):
             user_id=user_id,
             survey_id=survey_id,
             content=obj_in.content,
+            images=jsonable_encoder(obj_in.images)
         )
         db.add(db_obj)
         db.flush()
