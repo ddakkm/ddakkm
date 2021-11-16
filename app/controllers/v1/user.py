@@ -1,3 +1,4 @@
+import logging
 from typing import Any, List
 
 from sqlalchemy.orm import Session
@@ -8,6 +9,8 @@ from app.controllers import deps
 from app import crud, schemas, models
 
 router = APIRouter()
+logger = logging.getLogger('ddakkm_logger')
+
 
 # TODO POST 결과값에 통일된 응답값 이용
 
@@ -229,6 +232,7 @@ async def set_keyword(
     """
     <h1> 유저의 키워드를 설정합니다. </h1>
     """
+    logger.info(jsonable_encoder(obj_in))
     user_keywords = crud.user_keyword.get_keywords_by_user_id(db=db, user_id=current_user.id)
     # 키워드 수정일 경우
     if len(user_keywords) > 0:

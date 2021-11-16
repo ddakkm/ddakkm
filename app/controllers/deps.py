@@ -1,3 +1,4 @@
+import logging
 from typing import Generator, Optional, Union
 
 from sqlalchemy.orm import Session
@@ -14,6 +15,7 @@ from app.schemas.review import ReviewParams
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{settings.API_V1_STR}/auth/login/local")
 oauth2_scheme_optional = OAuth2PasswordBearer(tokenUrl=f"{settings.API_V1_STR}/auth/login/local", auto_error=False)
+logger = logging.getLogger('ddakkm_logger')
 
 
 def review_params(q: Optional[str] = Query(None, description="검색용 쿼리, string"),
@@ -47,10 +49,10 @@ def get_current_user(
         )
         token_data = schemas.TokenPayload(**payload)
     except (jwt.JWTError, ValidationError) as e:
-        print(e)
+        logger.warning(f"ERROR OCCURED : {e} | SUBJECTED JWT : {token}")
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="유효하지 않은 토큰 입니다."
+            detail=f"유효하지 않은 토큰 입니다. 상세 : {e}"
         )
     user = crud.user.get(db, id=token_data.sub)
     if not user:

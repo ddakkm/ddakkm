@@ -12,7 +12,7 @@ class Review(Base):
     is_delete = Column(Boolean, default=False)
     content = Column(String(3000))
     images = Column(JSON)
-    like_count = Column(Integer, default=0)
+    like_count = Column(Integer, default=0, nullable=False)
     view_count = Column(Integer, default=0)
 
     # One to One
