@@ -9,6 +9,8 @@ services:
     environment:
       app_env: dev
       LOG_LEVEL: warning
+      MAX_WORKERS: 2
+      WEB_CONCURRENCY: 1
 
   nginx:
     image: nginx

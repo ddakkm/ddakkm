@@ -3,7 +3,7 @@ from typing import List
 from sqlalchemy.orm import Session, joinedload
 from fastapi import HTTPException
 
-from app import crud, models
+from app import crud
 from app.crud.base import CRUDBase
 from app.models.users import User
 from app.models.comments import Comment
@@ -18,10 +18,17 @@ class CRUDComment(CRUDBase[Comment, CommentCreate, CommentUpdate]):
         return comment_obj
 
     def get_comment(self, db: Session, id: int) -> Comment:
-        comment_obj = db.query(self.model).filter(self.model.id == id).first()
+        comment_obj = db.query(self.model).join(self.model.user).\
+            options(joinedload(self.model.user)).\
+            filter(self.model.id == id).filter(self.model.is_delete == False).first()
         if comment_obj is None:
             raise HTTPException(404, "댓글을 찾을 수 없습니다.")
         return comment_obj
+
+    def get_comments_by_parent_id(self, db: Session, parent_id: int) -> List[Comment]:
+        return db.query(self.model).join(self.model.user).\
+            options(joinedload(self.model.user)).\
+            filter(self.model.parent_id == parent_id).filter(self.model.is_delete == False).all()
 
     def edit_comment(self, db: Session, id: int, obj_in: CommentUpdate, user_id: int) -> Comment:
         db_obj = db.query(self.model).filter(self.model.id == id).first()

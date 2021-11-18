@@ -15,7 +15,7 @@ from app.utils.comment import comment_model_to_dto
 
 router = APIRouter()
 
-# TODO POST 결과값에 통일된 응답값 이용
+# TODO 부모댓글 요청하면 자녀 댓글 리스트 보여주는 API 만들기
 
 
 @router.get("/{review_id}", name="리뷰에 속한 댓글 리스트 가져오기", response_model=List[Comment])
@@ -34,15 +34,36 @@ async def get_comment_list(
     return comment_model_to_dto(comments, comment_ids_like_by_user)
 
 
+@router.get("/{comment_id}/tree", name="부모 댓글 ID로 자식 댓글 모두 가져오기", response_model=Comment)
+async def get_parent_comment_with_tree(
+        comment_id: int,
+        db: Session = Depends(deps.get_db),
+        current_user: Union[models.User, None] = Depends(deps.get_current_user_optional)
+) -> Comment:
+    if current_user is None:
+        current_user = models.User(id=0)
+    parent = crud.comment.get_comment(db=db, id=comment_id)
+    childs = crud.comment.get_comments_by_parent_id(db=db, parent_id=comment_id)
+    comment_ids_like_by_user = [
+        jsonable_encoder(comment_id).get("comment_id")
+        for comment_id in crud.user_comment_like.get_comment_id_by_user_id(db=db, user_id=current_user.id)
+    ]
+    childs.append(parent)
+    return comment_model_to_dto(childs, comment_ids_like_by_user)[0]
+
+
 @router.get("/{comment_id}/content", name="댓글(대댓글) 내용 가져오기", response_model=schemas.CommentBase)
 async def get_comment_content(
         comment_id: int,
         db: Session = Depends(deps.get_db),
-        current_user: models.User = Depends(deps.get_current_user)
+        current_user: models.User = Depends(deps.get_current_user_optional)
 ) -> schemas.CommentBase:
     """
     <h1> 댓글(대댓글) ID로 댓글(대댓글)의 내용을 가져옵니다. </h1>
     """
+    if current_user is None:
+        current_user = models.User(id=0)
+
     comment = crud.comment.get_comment(db=db, id=comment_id)
     return schemas.CommentBase(content=comment.content)
 

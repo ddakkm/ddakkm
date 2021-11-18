@@ -29,7 +29,7 @@ def get_sns_id(sns_access_token: str, sns_provider: models.SnsProviderType) -> O
         if response.status_code != 200:
             raise HTTPException(status_code=400, detail="네이버 인증서버를 통해 인증할 수 없는 ACCESS TOKEN 입니다.")
         logger.info(response.json())
-        return str(response.json().get('id'))
+        return str(response.json().get('response').get("id"))
 
     else:
         raise HTTPException(status_code=400, detail="로컬 회원은 본 API로 인증할 수 없습니다.")

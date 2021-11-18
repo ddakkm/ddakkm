@@ -27,7 +27,6 @@ class TestGetReviews:
                        "&gender=ETC"
         response = client.get(self.host+query_params).json()
         content = response.get("contents")
-        print(content)
         if len(content) > 0:
             user = crud.user.get(db=self.db, id=content[0].get("user_id"))
             assert "백신" in content[0].get("content")
