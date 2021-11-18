@@ -1,13 +1,15 @@
+import logging
 from typing import Optional
 from datetime import timedelta
 
 import requests
 from fastapi import HTTPException
-from sqlalchemy.orm import Session
 
 from app import schemas, models, crud
 from app.core import security
 from app.core.config import settings
+
+logger = logging.getLogger('ddakkm_logger')
 
 
 def get_sns_id(sns_access_token: str, sns_provider: models.SnsProviderType) -> Optional[str]:
@@ -26,6 +28,7 @@ def get_sns_id(sns_access_token: str, sns_provider: models.SnsProviderType) -> O
         # 네이버 서버에서 준 액세스토큰 이상한 경우 > 400
         if response.status_code != 200:
             raise HTTPException(status_code=400, detail="네이버 인증서버를 통해 인증할 수 없는 ACCESS TOKEN 입니다.")
+        logger.info(response.json())
         return str(response.json().get('id'))
 
     else:
