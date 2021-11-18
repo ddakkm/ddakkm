@@ -304,7 +304,7 @@ async def report_review(
     return response
 
 
-@router.post("/{review_id}}/comment", name="리뷰에 댓글 작성", response_model=schemas.BaseResponse)
+@router.post("/{review_id}/comment", name="리뷰에 댓글 작성", response_model=schemas.BaseResponse)
 async def create_comment(
         review_id: int,
         comment_in: schemas.CommentCreate,
