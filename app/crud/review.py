@@ -47,7 +47,7 @@ class CRUDReview(CRUDBase[Review, ReviewCreate, ReviewUpdate]):
         if filters.min_age and filters.max_age:
             min_birth_year = calculate_birth_year_from_age(filters.min_age)
             max_birth_year = calculate_birth_year_from_age(filters.max_age)
-            filter_age = models.User.age.between(min_birth_year, max_birth_year)
+            filter_age = models.User.age.between(max_birth_year, min_birth_year)
         else:
             filter_age = self.model.id
 
