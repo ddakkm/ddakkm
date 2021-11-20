@@ -22,9 +22,10 @@ class NestedComment(CommentBase):
     nickname: str
     like_count: int = 0
     created_at: datetime
-    is_delete: bool
+    # is_delete: bool
     user_is_like: bool
-    user_is_active: bool
+    # user_is_active: bool
+    user_is_writer: bool
 
 
 class Comment(CommentBase):
@@ -33,9 +34,10 @@ class Comment(CommentBase):
     nickname: str
     like_count: int = 0
     created_at: datetime
-    is_delete: bool
+    # is_delete: bool
     user_is_like: bool
-    user_is_active: bool
+    # user_is_active: bool
+    user_is_writer: bool
     nested_comment: Optional[List[NestedComment]]
 
     class Config:

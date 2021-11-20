@@ -20,15 +20,13 @@ class CRUDComment(CRUDBase[Comment, CommentCreate, CommentUpdate]):
     def get_comment(self, db: Session, id: int) -> Comment:
         comment_obj = db.query(self.model).join(self.model.user).\
             options(joinedload(self.model.user)).\
-            filter(self.model.id == id).filter(self.model.is_delete == False).first()
-        if comment_obj is None:
-            raise HTTPException(404, "댓글을 찾을 수 없습니다.")
+            filter(self.model.id == id).first()
         return comment_obj
 
     def get_comments_by_parent_id(self, db: Session, parent_id: int) -> List[Comment]:
         return db.query(self.model).join(self.model.user).\
             options(joinedload(self.model.user)).\
-            filter(self.model.parent_id == parent_id).filter(self.model.is_delete == False).all()
+            filter(self.model.parent_id == parent_id).all()
 
     def edit_comment(self, db: Session, id: int, obj_in: CommentUpdate, user_id: int) -> Comment:
         db_obj = db.query(self.model).filter(self.model.id == id).first()

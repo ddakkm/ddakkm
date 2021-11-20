@@ -18,7 +18,10 @@ router = APIRouter()
 # TODO 부모댓글 요청하면 자녀 댓글 리스트 보여주는 API 만들기
 
 
-@router.get("/{review_id}", name="리뷰에 속한 댓글 리스트 가져오기", response_model=List[Comment])
+@router.get("/{review_id}",
+            name="리뷰에 속한 댓글 리스트 가져오기",
+            response_model=List[Comment],
+            response_model_exclude=["is_delete", "user_is_active"])
 async def get_comment_list(
         review_id: int,
         db: Session = Depends(deps.get_db),
@@ -31,7 +34,7 @@ async def get_comment_list(
         jsonable_encoder(comment_id).get("comment_id")
         for comment_id in crud.user_comment_like.get_comment_id_by_user_id(db=db, user_id=current_user.id)
     ]
-    return comment_model_to_dto(comments, comment_ids_like_by_user)
+    return comment_model_to_dto(comments, comment_ids_like_by_user, current_user.id)
 
 
 @router.get("/{comment_id}/tree", name="부모 댓글 ID로 자식 댓글 모두 가져오기", response_model=Comment)
@@ -49,7 +52,7 @@ async def get_parent_comment_with_tree(
         for comment_id in crud.user_comment_like.get_comment_id_by_user_id(db=db, user_id=current_user.id)
     ]
     childs.append(parent)
-    return comment_model_to_dto(childs, comment_ids_like_by_user)[0]
+    return comment_model_to_dto(childs, comment_ids_like_by_user, current_user.id)[0]
 
 
 @router.get("/{comment_id}/content", name="댓글(대댓글) 내용 가져오기", response_model=schemas.CommentBase)
