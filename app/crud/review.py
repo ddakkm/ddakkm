@@ -27,13 +27,20 @@ class CRUDReview(CRUDBase[Review, ReviewCreate, ReviewUpdate]):
 
         logger.info(f"리뷰 작성 요청 {jsonable_encoder(obj_in)}")
 
-        # 서베이 등록 후 리뷰 등록
-        db_obj = self.model(
-            user_id=user_id,
-            survey_id=survey_id,
-            content=obj_in.content,
-            images=jsonable_encoder(obj_in.images)
-        )
+        # 이미지 유무에 따라 입력값 결정
+        if obj_in.images is None:
+            db_obj = self.model(
+                user_id=user_id,
+                survey_id=survey_id,
+                content=obj_in.content
+            )
+        else:
+            db_obj = self.model(
+                user_id=user_id,
+                survey_id=survey_id,
+                content=obj_in.content,
+                images=jsonable_encoder(obj_in.images)
+            )
         db.add(db_obj)
         db.flush()
         return db_obj

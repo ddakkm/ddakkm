@@ -28,6 +28,9 @@ class Settings(BaseSettings):
 
     FCM_API_KEY: str
 
+    TEST_USER_ID: str
+    TEST_USER_PW: str
+
 # debug
 # _env_file=f'{os.getenv("app_env", "../app/env/local")}.env'
 
