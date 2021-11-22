@@ -26,13 +26,12 @@ class Images(BaseModel):
 
 
 class ReviewBase(BaseModel):
-    content: Optional[str] = " asdasd "
+    content: str
 
 
 # 리뷰 작성시 입력해야할 파라미터로 설문양식 A를 포함합니다.
 class ReviewCreate(ReviewBase):
     survey: SurveyACreate
-    # TODO validation
     keywords: List[str] = ["심근염/심낭염"]
     images: Optional[Images]
 

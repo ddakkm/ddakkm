@@ -115,9 +115,9 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
             db.query(models.UserLike).filter(models.UserLike.user_id == user_id).delete()
             db.delete(user)
             db.commit()
-            return BaseResponse(status="ok", message=message)
+            return BaseResponse(status="ok", object=user_id, message=message)
         except Exception as e:
-            return BaseResponse(status="failed", error=str(e))
+            return BaseResponse(status="failed", object=user_id, error=str(e))
 
     def soft_delete_by_user_id(self, db: Session, user_id: int) -> BaseResponse:
         user = db.query(self.model).filter(self.model.id == user_id).first()

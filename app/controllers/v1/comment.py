@@ -15,8 +15,6 @@ from app.utils.comment import comment_model_to_dto
 
 router = APIRouter()
 
-# TODO 부모댓글 요청하면 자녀 댓글 리스트 보여주는 API 만들기
-
 
 @router.get("/{review_id}",
             name="리뷰에 속한 댓글 리스트 가져오기",

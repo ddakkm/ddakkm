@@ -83,4 +83,4 @@ def get_current_user_optional(
 
 
 def get_page_request(page: int = 1):
-    return {"page": page, "size": 10}
+    return {"page": page, "size": 20}

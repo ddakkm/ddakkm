@@ -326,6 +326,7 @@ async def get_user_posts(
     return user_reviews
 
 
+# TODO 유저 댓글 삭제 -> 유저가 쓴 리뷰의 댓글 삭제 -> 유저의 좋아요 삭제 -> 유저의
 @router.delete("", response_model=schemas.BaseResponse, deprecated=True, name="회원삭제 (개발 테스트용)")
 async def delete_user(
         db: Session = Depends(deps.get_db),
@@ -336,6 +337,19 @@ async def delete_user(
     헤더에 [ Authorization: Baerer 액세스 토큰 ]을 넣으면 해당하는 유저의 리뷰/코멘트/좋아요기록 등 모든 관련 정보가 삭제됩니다.
     """
     return crud.user.delete_by_user_id(db=db, user_id=current_user.id)
+
+
+# TODO
+@router.delete("/by-id", response_model=schemas.BaseResponse, deprecated=True, name="회원삭제2 (개발 테스트용)")
+async def delete_user_by_id(
+        user_id: int,
+        db: Session = Depends(deps.get_db),
+) -> schemas.BaseResponse:
+    """
+    <h1> 회원을 삭제합니다. 본 API는 테스트용으로만 사용합니다. </h1> </br>
+    헤더에 [ Authorization: Baerer 액세스 토큰 ]을 넣으면 해당하는 유저의 리뷰/코멘트/좋아요기록 등 모든 관련 정보가 삭제됩니다.
+    """
+    return crud.user.delete_by_user_id(db=db, user_id=user_id)
 
 
 @router.get("/me/comment-posts", response_model=List[schemas.UserProfilePostResponse], deprecated=True, name="내가 쓴 댓글 확인")
