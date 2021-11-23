@@ -1,14 +1,20 @@
+import copy
 import os, sys
 from typing import Dict
+
+import pytest
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))))
 
 from fastapi.testclient import TestClient
+from fastapi.exceptions import HTTPException
 from sqlalchemy.orm import Session
 
 from app import models, crud, schemas
 from app.main import app
 from app.test.utils import TestingSessionLocal
 from app.utils.user import calculate_birth_year_from_age
+from app.test.conftest import SAMPLE_REVIEW_PARAMS
 
 client = TestClient(app)
 
@@ -71,53 +77,32 @@ class TestGetReviews:
 class TestPostReview:
     host = "v1/review"
     db: Session = TestingSessionLocal()
-    default_params = {
-        "content": " asdasd ",
-        "survey": {
-            "vaccine_type": "ETC",
-            "vaccine_round": "FIRST",
-            "is_crossed": False,
-            "is_pregnant": False,
-            "is_underlying_disease": False,
-            "date_from": "ZERO_DAY",
-            "data": {
-                "q1": [1],
-                "q2": [1],
-                "q2_1": [],
-                "q3": [1],
-                "q4": [1],
-                "q5": [1]
-            }
-        },
-        "keywords": ["심근염/심낭염"],
-        "images": {
-            "image1_url": "https://ddakkm-public.s3.ap-northeast-2.amazonaws.com/images/32c6f15b-3c50-59b3-8d3a-e98bfc223517.jpeg",
-            "image2_url": "string",
-            "image3_url": "string"
-        }
-    }
 
     def test_post_review(self, get_test_user_token: Dict[str, str]):
-        response = client.post(self.host, json=self.default_params, headers=get_test_user_token)
+        response = client.post(self.host, json=SAMPLE_REVIEW_PARAMS, headers=get_test_user_token)
         review_id = response.json().get("object")
         test_review = crud.review.get_review(self.db, id=review_id)
         self.db.delete(test_review)
+        self.db.query(models.ReviewKeyword).filter(models.ReviewKeyword.review_id == review_id).delete()
+        self.db.delete(test_review.survey)
         self.db.commit()
         self.db.close()
         assert response.status_code == 200
 
     def test_without_content_not_accept(self, get_test_user_token: Dict[str, str]):
-        body = self.default_params.copy()
+        body = SAMPLE_REVIEW_PARAMS.copy()
         response = client.post(self.host, json=body.pop("content"), headers=get_test_user_token)
         assert response.status_code != 200
 
     def test_without_keyword_accept(self, get_test_user_token: Dict[str, str]):
-        body = self.default_params.copy()
+        body = SAMPLE_REVIEW_PARAMS.copy()
         body["keywords"] = []
         response = client.post(self.host, json=body, headers=get_test_user_token)
         review_id = response.json().get("object")
         test_review = crud.review.get_review(self.db, id=review_id)
         self.db.delete(test_review)
+        self.db.query(models.ReviewKeyword).filter(models.ReviewKeyword.review_id == review_id).delete()
+        self.db.delete(test_review.survey)
         self.db.commit()
         self.db.close()
         assert response.status_code == 200
@@ -150,7 +135,6 @@ class TestPostImages:
         files = [('files', file1)]
         response = client.post(self.host, files=files, headers=get_test_user_token)
         file1.close()
-        print(response.json())
         assert dict(response.json()) == {
             'image1_url': 'https://ddakkm-public.s3.ap-northeast-2.amazonaws.com/'
                           'images/21726e00-63cd-5750-b186-c786400a649e.jpeg',
@@ -158,3 +142,52 @@ class TestPostImages:
             'image3_url': None
         }
 
+
+class TestGetReivew:
+    host = "v1/review"
+    db: Session = TestingSessionLocal()
+    reviews = crud.review.get_multi(db=db)
+    abnormal_review_ids = []
+    normal_review_ids = []
+
+    def test_get_review_status_ok(self):
+        for review in self.reviews:
+            if review.is_delete is True or review.user.is_active is False:
+                self.abnormal_review_ids.append(review.id)
+            else:
+                self.normal_review_ids.append(review.id)
+
+        for review_id in self.normal_review_ids:
+            response = client.get(self.host+"/"+str(review_id))
+            assert response.status_code == 200
+
+        for review_id in self.abnormal_review_ids:
+            response = client.get(self.host+"/"+str(review_id))
+            assert response.status_code == 404
+
+    # 리뷰 모델에 맞게 리턴되는지 확인
+    def test_get_review_form(self):
+        response = client.get(self.host+"/"+str(self.normal_review_ids[0]))
+        response_body = response.json()
+        schemas.Review(
+            id=response_body.get("id"),
+            survey=response_body.get("survey"),
+            user_id=response_body.get("user_id"),
+            content=response_body.get("content"),
+            is_writer=response_body.get("is_writer"),
+            nickname=response_body.get("nickname"),
+            keyword=response_body.get("keywords"),
+            comment_count=response_body.get("comment_count"),
+            like_count=response_body.get("like_count"),
+            images=response_body.get("images", None),
+            user_is_like=response_body.get("user_is_like")
+        )
+
+    def test_user_is_like(self, get_test_user_token: Dict[str, str]):
+        client.post(self.host+"/"+str(self.normal_review_ids[0])+"/like_status", headers=get_test_user_token)
+        user_is_like = client.get(self.host+"/"+str(self.normal_review_ids[0]), headers=get_test_user_token).json().get("user_is_like")
+
+        client.post(self.host+"/"+str(self.normal_review_ids[0])+"/like_status", headers=get_test_user_token)
+        user_is_unlike = client.get(self.host+"/"+str(self.normal_review_ids[0]), headers=get_test_user_token).json().get("user_is_like")
+
+        assert user_is_like != user_is_unlike
