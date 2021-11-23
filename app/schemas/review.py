@@ -37,7 +37,6 @@ class ReviewCreate(ReviewBase):
 
 
 class ReviewUpdate(ReviewBase):
-    # TODO validation
     keywords: List[str] = ["심근염/심낭염"]
     images: Optional[Images]
 

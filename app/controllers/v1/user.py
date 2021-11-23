@@ -12,9 +12,6 @@ router = APIRouter()
 logger = logging.getLogger('ddakkm_logger')
 
 
-# TODO POST 결과값에 통일된 응답값 이용
-
-
 @router.get("/join-survey", response_model=schemas.JoinSurveyStatusResponse, name="회원가입 설문 여부 확인")
 async def get_join_survey_status(
         db: Session = Depends(deps.get_db),
@@ -326,7 +323,7 @@ async def get_user_posts(
     return user_reviews
 
 
-# TODO 유저 댓글 삭제 -> 유저가 쓴 리뷰의 댓글 삭제 -> 유저의 좋아요 삭제 -> 유저의
+# TODO 유저 댓글 삭제 -> 유저가 쓴 리뷰의 댓글 삭제 -> 유저가 쓴 리뷰의 키워드 삭제 -> 유저의 좋아요 삭제 -> 유저가 쓴 리뷰의 좋아요 삭제 -> 유저의 리뷰 삭제 -> 유저의 설문조사 삭제 -> 유저 삭제
 @router.delete("", response_model=schemas.BaseResponse, deprecated=True, name="회원삭제 (개발 테스트용)")
 async def delete_user(
         db: Session = Depends(deps.get_db),

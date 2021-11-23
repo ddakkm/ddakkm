@@ -4,7 +4,6 @@ from pydantic import BaseModel
 
 
 class KeywordBase(BaseModel):
-    # TODO validation
     keywords: List[str] = ["심근염/심낭염"]
 
 

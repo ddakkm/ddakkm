@@ -68,7 +68,7 @@ class TestGetReviews:
         assert total == contents_count
 
 
-class TestWriteReview:
+class TestPostReview:
     host = "v1/review"
     db: Session = TestingSessionLocal()
     default_params = {
@@ -105,3 +105,56 @@ class TestWriteReview:
         self.db.commit()
         self.db.close()
         assert response.status_code == 200
+
+    def test_without_content_not_accept(self, get_test_user_token: Dict[str, str]):
+        body = self.default_params.copy()
+        response = client.post(self.host, json=body.pop("content"), headers=get_test_user_token)
+        assert response.status_code != 200
+
+    def test_without_keyword_accept(self, get_test_user_token: Dict[str, str]):
+        body = self.default_params.copy()
+        body["keywords"] = []
+        response = client.post(self.host, json=body, headers=get_test_user_token)
+        review_id = response.json().get("object")
+        test_review = crud.review.get_review(self.db, id=review_id)
+        self.db.delete(test_review)
+        self.db.commit()
+        self.db.close()
+        assert response.status_code == 200
+
+
+class TestPostImages:
+    host = "v1/review/images"
+    db: Session = TestingSessionLocal()
+
+    def test_post_images(self, get_test_user_token: Dict[str, str]):
+        file1 = open("docs/test_images/test1.jpeg", "rb")
+        file2 = open("docs/test_images/test2.jpeg", "rb")
+        file3 = open("docs/test_images/test3.jpg", "rb")
+        files = [('files', file1), ('files', file2), ('files', file3)]
+        response = client.post(self.host, files=files, headers=get_test_user_token)
+        file1.close()
+        file2.close()
+        file3.close()
+        assert dict(response.json()) == {
+            'image1_url': 'https://ddakkm-public.s3.ap-northeast-2.amazonaws.com/'
+                          'images/21726e00-63cd-5750-b186-c786400a649e.jpeg',
+            'image2_url': 'https://ddakkm-public.s3.ap-northeast-2.amazonaws.com/'
+                          'images/f413c8d2-9320-5e45-bdfb-55d89b1e194d.jpeg',
+            'image3_url': 'https://ddakkm-public.s3.ap-northeast-2.amazonaws.com/'
+                          'images/017a8e3c-a6f1-5e06-ada9-4bb49485f4cd.jpg'
+        }
+
+    def test_post_image(self, get_test_user_token: Dict[str, str]):
+        file1 = open("docs/test_images/test1.jpeg", "rb")
+        files = [('files', file1)]
+        response = client.post(self.host, files=files, headers=get_test_user_token)
+        file1.close()
+        print(response.json())
+        assert dict(response.json()) == {
+            'image1_url': 'https://ddakkm-public.s3.ap-northeast-2.amazonaws.com/'
+                          'images/21726e00-63cd-5750-b186-c786400a649e.jpeg',
+            'image2_url': None,
+            'image3_url': None
+        }
+

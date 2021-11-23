@@ -19,8 +19,6 @@ from app import crud, schemas, models
 router = APIRouter()
 logger = logging.getLogger('ddakkm_logger')
 
-# TODO POST 결과값에 통일된 응답값 이용
-
 
 @router.post("", name="리뷰 생성", response_model=schemas.BaseResponse)
 async def create_review(
