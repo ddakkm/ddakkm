@@ -7,7 +7,6 @@ import pytest
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))))
 
 from fastapi.testclient import TestClient
-from fastapi.exceptions import HTTPException
 from sqlalchemy.orm import Session
 
 from app import models, crud, schemas
@@ -184,10 +183,43 @@ class TestGetReivew:
         )
 
     def test_user_is_like(self, get_test_user_token: Dict[str, str]):
-        client.post(self.host+"/"+str(self.normal_review_ids[0])+"/like_status", headers=get_test_user_token)
-        user_is_like = client.get(self.host+"/"+str(self.normal_review_ids[0]), headers=get_test_user_token).json().get("user_is_like")
+        body = SAMPLE_REVIEW_PARAMS.copy()
+        body["keywords"] = []
+        sample_review = client.post(self.host, json=body, headers=get_test_user_token)
+        self.db.commit()
+        self.db.close()
+        sample_review_id = sample_review.json().get("object")
+        assert sample_review.status_code == 200
 
-        client.post(self.host+"/"+str(self.normal_review_ids[0])+"/like_status", headers=get_test_user_token)
-        user_is_unlike = client.get(self.host+"/"+str(self.normal_review_ids[0]), headers=get_test_user_token).json().get("user_is_like")
+        client.post(self.host+"/"+str(sample_review_id)+"/like_status", headers=get_test_user_token)
+        user_is_like = client.get(self.host+"/"+str(sample_review_id), headers=get_test_user_token).json().get("user_is_like")
+        assert user_is_like is True
 
-        assert user_is_like != user_is_unlike
+        client.post(self.host+"/"+str(sample_review_id)+"/like_status", headers=get_test_user_token)
+        user_is_unlike = client.get(self.host+"/"+str(sample_review_id), headers=get_test_user_token).json().get("user_is_like")
+        assert user_is_unlike is False
+
+        sample_review = crud.review.get_review(self.db, id=sample_review_id)
+        self.db.delete(sample_review)
+        self.db.delete(sample_review.survey)
+        self.db.commit()
+        self.db.close()
+
+    def test_post_review_and_writer(self, get_test_user_token: Dict[str, str]):
+        body = SAMPLE_REVIEW_PARAMS.copy()
+        body["keywords"] = []
+        sample_review = client.post(self.host, json=body, headers=get_test_user_token)
+        self.db.commit()
+        self.db.close()
+        sample_review_id = sample_review.json().get("object")
+        assert sample_review.status_code == 200
+
+        sample_review_by_api = client.get(self.host+"/"+str(sample_review_id), headers=get_test_user_token)
+        user_is_wirter = sample_review_by_api.json().get("is_writer")
+        assert user_is_wirter is True
+
+        sample_review = crud.review.get_review(self.db, id=sample_review_id)
+        self.db.delete(sample_review)
+        self.db.delete(sample_review.survey)
+        self.db.commit()
+        self.db.close()
