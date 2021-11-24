@@ -13,7 +13,7 @@ from app import models, crud, schemas
 from app.main import app
 from app.test.utils import TestingSessionLocal
 from app.utils.user import calculate_birth_year_from_age
-from app.test.conftest import SAMPLE_REVIEW_PARAMS
+from app.test.utils import SAMPLE_REVIEW_PARAMS, post_sample_review, delete_sample_review
 
 client = TestClient(app)
 
@@ -206,20 +206,31 @@ class TestGetReivew:
         self.db.close()
 
     def test_post_review_and_writer(self, get_test_user_token: Dict[str, str]):
-        body = SAMPLE_REVIEW_PARAMS.copy()
-        body["keywords"] = []
-        sample_review = client.post(self.host, json=body, headers=get_test_user_token)
-        self.db.commit()
-        self.db.close()
-        sample_review_id = sample_review.json().get("object")
-        assert sample_review.status_code == 200
-
-        sample_review_by_api = client.get(self.host+"/"+str(sample_review_id), headers=get_test_user_token)
-        user_is_wirter = sample_review_by_api.json().get("is_writer")
+        sample_review_id = post_sample_review(
+            client=client, db=self.db, host=self.host, get_test_user_token=get_test_user_token
+        )
+        response = client.get(self.host+"/"+str(sample_review_id), headers=get_test_user_token)
+        user_is_wirter = response.json().get("is_writer")
         assert user_is_wirter is True
+        delete_sample_review(db=self.db, review_id=sample_review_id)
 
-        sample_review = crud.review.get_review(self.db, id=sample_review_id)
-        self.db.delete(sample_review)
-        self.db.delete(sample_review.survey)
-        self.db.commit()
-        self.db.close()
+
+class TestDeleteReview:
+    host = "v1/review"
+    db: Session = TestingSessionLocal()
+
+    def test_delete_review(self, get_test_user_token: Dict[str, str]):
+        sample_review_id = post_sample_review(
+            client=client, db=self.db, host=self.host, get_test_user_token=get_test_user_token
+        )
+
+        delete_response = client.delete(f"{self.host}/{sample_review_id}", headers=get_test_user_token)
+        assert delete_response.status_code == 200
+
+        get_response = client.get(f"{self.host}/{sample_review_id}")
+        assert get_response.status_code == 404
+
+        get_multi_response = client.get(f"{self.host}?q=sample_review_60ZXlSGZ2gtZXoOPNsxsBYttZVbAhvZZ")
+        assert len(get_multi_response.json().get("contents")) == 0
+
+        delete_sample_review(db=self.db, review_id=sample_review_id)
