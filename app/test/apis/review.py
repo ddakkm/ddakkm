@@ -234,3 +234,42 @@ class TestDeleteReview:
         assert len(get_multi_response.json().get("contents")) == 0
 
         delete_sample_review(db=self.db, review_id=sample_review_id)
+
+
+class TestEditReview:
+    host = "v1/review"
+    db: Session = TestingSessionLocal()
+    edited_params = SAMPLE_REVIEW_PARAMS.copy()
+    edited_content = "edited_review_7euVQETSK96CH9r4fZauzUsBOzIIis1Y"
+    edited_keywords = ["두드러기"]
+    edited_images = {
+        "image1_url": "https://ddakkm-public.s3.ap-northeast-2.amazonaws.com/"
+                      "images/32c6f15b-3c50-59b3-8d3a-e98bfc223517.jpeg",
+        "image2_url": "https://ddakkm-public.s3.ap-northeast-2.amazonaws.com/"
+                      "images/a2ce8441-939a-5322-9a45-c8d87835ae0b.png",
+        "image3_url": "https://ddakkm-public.s3.ap-northeast-2.amazonaws.com/"
+                      "images/0c50e73a-eb9a-5a2e-869e-dc35dd03a893.jpeg"
+    }
+    edited_params.pop("survey")
+    edited_params["content"] = edited_content
+    edited_params["keywords"] = edited_keywords
+    edited_params["images"] = edited_images
+
+    def test_edit_review(self, get_test_user_token: Dict[str, str]):
+        print(self.edited_params)
+
+        sample_review_id = post_sample_review(
+            client=client, db=self.db, host=self.host, get_test_user_token=get_test_user_token
+        )
+
+        edit_response = client.patch(
+            f"{self.host}/{sample_review_id}", json=self.edited_params, headers=get_test_user_token
+        )
+        assert edit_response.status_code == 200
+
+        get_response = client.get(f"{self.host}/{sample_review_id}")
+        assert get_response.json().get("content") == self.edited_content
+        assert get_response.json().get("keywords") == self.edited_keywords
+        assert get_response.json().get("images") == self.edited_images
+
+        delete_sample_review(db=self.db, review_id=sample_review_id)
