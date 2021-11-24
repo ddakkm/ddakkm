@@ -54,8 +54,9 @@ def post_sample_review(client: TestClient, db: Session, host: str, get_test_user
 
 def delete_sample_review(db: Session, review_id: int):
     sample_review = crud.review.get_review(db, id=review_id)
-    db.delete(sample_review)
     db.query(models.ReviewKeyword).filter(models.ReviewKeyword.review_id == review_id).delete()
+    db.query(models.Comment).filter(models.Comment.review_id == review_id).delete()
+    db.delete(sample_review)
     db.delete(sample_review.survey)
     db.commit()
     db.close()
