@@ -142,7 +142,7 @@ class TestPostImages:
         }
 
 
-class TestGetReivew:
+class TestReivewBase:
     host = "v1/review"
     db: Session = TestingSessionLocal()
     reviews = crud.review.get_multi(db=db)
@@ -214,6 +214,16 @@ class TestGetReivew:
         assert user_is_wirter is True
         delete_sample_review(db=self.db, review_id=sample_review_id)
 
+    def test_get_review_content(self, get_test_user_token: Dict[str, str]):
+        response = client.get(f"{self.host}/{self.normal_review_ids[0]}/content", headers=get_test_user_token)
+        assert response.status_code == 200
+
+    def test_report_review(self, get_test_user_token: Dict[str, str]):
+        reason = {"reason": 2}
+        response = client.post(f"{self.host}/{self.normal_review_ids[0]}/report", json=reason, headers=get_test_user_token)
+        assert response.status_code == 200
+        assert response.json().get("object") == self.normal_review_ids[0]
+
 
 class TestDeleteReview:
     host = "v1/review"
@@ -256,8 +266,6 @@ class TestEditReview:
     edited_params["images"] = edited_images
 
     def test_edit_review(self, get_test_user_token: Dict[str, str]):
-        print(self.edited_params)
-
         sample_review_id = post_sample_review(
             client=client, db=self.db, host=self.host, get_test_user_token=get_test_user_token
         )
