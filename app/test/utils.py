@@ -1,10 +1,10 @@
-from typing import Dict
+from typing import Dict, List
 
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 
-from app import crud, models
+from app import crud, models, schemas
 from app.core.config import settings
 
 database_uri = f"mysql://{settings.MYSQL_USER}:{settings.MYSQL_PASSWORD}@{settings.MYSQL_SERVER}:3306/{settings.MYSQL_DB}?charset=utf8mb4"
@@ -60,3 +60,26 @@ def delete_sample_review(db: Session, review_id: int):
     db.delete(sample_review.survey)
     db.commit()
     db.close()
+
+
+def post_sameple_comment(client: TestClient, host: str, review_id: int, get_test_user_token: Dict[str, str]) -> int:
+    comment = {"content": "XQbw54tP7n"}
+    post_comment_response = client.post(
+        f"{host}/{review_id}/comment", headers=get_test_user_token, json=comment
+    )
+    assert post_comment_response.status_code == 200
+    return post_comment_response.json().get("object")
+
+
+def post_sample_nested_comment(client: TestClient, host: str, comment_id: int, get_test_user_tokne: Dict[str, str]) -> int:
+    comment = {"content": "GOgxXz4Pb0"}
+    post_nested_comment_response = client.post(
+        f"{host}/{comment_id}", headers=get_test_user_tokne, json=comment
+    )
+    assert post_nested_comment_response.status_code == 200
+    return post_nested_comment_response.json().get("object")
+
+
+def get_review_ids_has_comment(db: Session):
+    reviews = crud.review.get_reviews_has_comment(db)
+    return [review.id for review in reviews]

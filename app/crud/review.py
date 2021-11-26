@@ -174,5 +174,8 @@ class CRUDReview(CRUDBase[Review, ReviewCreate, ReviewUpdate]):
         counts = db.query(self.model).filter(self.model.user_id == user_id).count()
         return counts
 
+    def get_reviews_has_comment(self, db: Session):
+        return db.query(self.model).join(models.Comment).all()
+
 
 review = CRUDReview(Review)
