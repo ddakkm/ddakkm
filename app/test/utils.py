@@ -6,6 +6,7 @@ from sqlalchemy.orm import sessionmaker, Session
 
 from app import crud, models, schemas
 from app.core.config import settings
+from app.controllers.deps import get_current_user
 
 database_uri = f"mysql://{settings.MYSQL_USER}:{settings.MYSQL_PASSWORD}@{settings.MYSQL_SERVER}:3306/{settings.MYSQL_DB}?charset=utf8mb4"
 
@@ -38,6 +39,26 @@ SAMPLE_REVIEW_PARAMS = {
             "image3_url": None
         }
     }
+
+SAMPLE_JOIN_SURVEY_PARAMS = {
+  "survey_type": "A",
+  "survey_details": {
+    "vaccine_type": "ETC",
+    "vaccine_round": "FIRST",
+    "is_crossed": False,
+    "is_pregnant": False,
+    "is_underlying_disease": False,
+    "date_from": "ZERO_DAY",
+    "data": {
+      "q1": [1, 2, 3, 4, 5, 6, 7, "근육통 이요? 근육이 애초에 없었는데요"],
+      "q2": [2],
+      "q2_1": [2],
+      "q3": [1, 2, 3, 4, "두통이요? 저는 머리가 없습니다."],
+      "q4": [1, 2, 3, 4, 5, "속이요? 저는 다이어터인데요."],
+      "q5": [1]
+    }
+  }
+}
 
 
 def post_sample_review(client: TestClient, db: Session, host: str, get_test_user_token: Dict[str, str]) -> int:
@@ -83,3 +104,9 @@ def post_sample_nested_comment(client: TestClient, host: str, comment_id: int, g
 def get_review_ids_has_comment(db: Session):
     reviews = crud.review.get_reviews_has_comment(db)
     return [review.id for review in reviews]
+
+
+def get_user_model(db: Session, get_test_user_token: Dict[str, str]):
+    token = get_test_user_token.get("Authorization")[7:]
+    user = get_current_user(db=db, token=token)
+    return crud.user.get(db, id=user.id)
