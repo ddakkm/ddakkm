@@ -40,6 +40,7 @@ class SurveyA(Base):
     is_underlying_disease = Column(Boolean, default=False)
     date_from = Column(Enum(DATE_FROM), default=DATE_FROM.ZERO_DAY)
     data = Column(JSON)
+    is_join_survey = Column(Boolean, default=False)
 
     # One to One
     user = relationship("User", back_populates="survey_a", uselist=False)
@@ -50,6 +51,7 @@ class SurveyB(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey('user.id'))
     data = Column(JSON)
+    is_join_survey = Column(Boolean, default=False)
 
     # One to One
     user = relationship("User", back_populates="survey_b", uselist=False)
@@ -59,6 +61,7 @@ class SurveyC(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey('user.id'))
     data = Column(JSON)
+    is_join_survey = Column(Boolean, default=False)
 
     # One to One
     user = relationship("User", back_populates="survey_c", uselist=False)

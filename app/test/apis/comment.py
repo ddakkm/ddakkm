@@ -6,13 +6,15 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from app import models, crud, schemas
+from app import crud, schemas
 from app.main import app
 from app.test.utils import TestingSessionLocal
 from app.test.utils import (
     post_sample_review, delete_sample_review, get_review_ids_has_comment,
     post_sameple_comment, post_sample_nested_comment
 )
+
+
 client = TestClient(app)
 
 

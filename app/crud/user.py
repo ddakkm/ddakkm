@@ -81,18 +81,24 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
             -> User:
         # A 타입 설문지 -> 설문 내용을 작성 양식에 맞게 넣고, user_id 와 함께 입력 >> 빈 내용의 리뷰도 함께 생성
         if survey_in.survey_type == SurveyType.A:
-            survey_create_schema = SurveyA(**jsonable_encoder(survey_in.survey_details), user_id=user_id)
+            survey_create_schema = models.SurveyA(
+                **jsonable_encoder(survey_in.survey_details), user_id=user_id, is_join_survey=True
+            )
             survey = crud.survey_a.create(db=db, obj_in=survey_create_schema)
             review_obj = models.Review(user_id=user_id, survey_id=survey.id, content=None)
             crud.review.create(db=db, obj_in=review_obj)
         # B 타입 설문지 -> 설문 내용을 작성 양식에 맞게 넣고, user_id 와 함께 DB에 입력
         elif survey_in.survey_type == SurveyType.B:
             survey_create_schema = SurveyB(**jsonable_encoder(survey_in.survey_details))
-            crud.survey_b.create(db=db, obj_in=models.SurveyB(data=survey_create_schema, user_id=user_id))
+            crud.survey_b.create(db=db, obj_in=models.SurveyB(
+                data=survey_create_schema, user_id=user_id, is_join_survey=True
+            ))
         # C 타입 설문지 -> 설문 내용을 작성 양식에 맞게 넣고, user_id 와 함께 DB에 입력
         else:
             survey_create_schema = SurveyC(**jsonable_encoder(survey_in.survey_details))
-            crud.survey_c.create(db=db, obj_in=models.SurveyC(data=survey_create_schema, user_id=user_id))
+            crud.survey_c.create(db=db, obj_in=models.SurveyC(
+                data=survey_create_schema, user_id=user_id, is_join_survey=True
+            ))
 
         # 유저 정보 업데이트
         db_obj = db.query(self.model).filter(self.model.id == user_id).first()
