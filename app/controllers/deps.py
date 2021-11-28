@@ -78,7 +78,7 @@ def get_current_user_optional(
 
     user = crud.user.get(db, id=token_data.sub)
     if not user:
-        return None
+        raise HTTPException(status_code=404, detail="없는 회원입니다.")
     return user
 
 

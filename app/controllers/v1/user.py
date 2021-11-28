@@ -250,7 +250,7 @@ async def get_user_profile(
         user_id: int,
         *,
         db: Session = Depends(deps.get_db),
-        current_user: models.User = Depends(deps.get_current_user)
+        current_user: models.User = Depends(deps.get_current_user_optional)
 ) -> schemas.UserProfileResponse:
     """
     <h1> 회원 정보 요약본을 가져옵니다. </h2> </br>
@@ -294,7 +294,7 @@ async def get_user_posts(
         *,
         user_id: int,
         db: Session = Depends(deps.get_db),
-        current_user: models.User = Depends(deps.get_current_user)
+        current_user: models.User = Depends(deps.get_current_user_optional)
 ) -> Any:
     """
     <h1> 다른 회원이 올린 후기들의 리스트를 불러옵니다. </h1>
@@ -341,6 +341,7 @@ async def delete_user(
 async def delete_user_by_id(
         user_id: int,
         db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_user)
 ) -> schemas.BaseResponse:
     """
     <h1> 회원을 삭제합니다. 본 API는 테스트용으로만 사용합니다. </h1> </br>
