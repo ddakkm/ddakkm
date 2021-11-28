@@ -85,7 +85,7 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
                 **jsonable_encoder(survey_in.survey_details), user_id=user_id, is_join_survey=True
             )
             survey = crud.survey_a.create(db=db, obj_in=survey_create_schema)
-            review_obj = models.Review(user_id=user_id, survey_id=survey.id, content=None)
+            review_obj = models.Review(user_id=user_id, survey_id=survey.id, content="")
             crud.review.create(db=db, obj_in=review_obj)
         # B 타입 설문지 -> 설문 내용을 작성 양식에 맞게 넣고, user_id 와 함께 DB에 입력
         elif survey_in.survey_type == SurveyType.B:
