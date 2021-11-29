@@ -383,6 +383,8 @@ async def get_my_comments(
         ) for review in reviews_model]
     return reviews
 
+# TODO 로그아웃
+
 
 @router.get("/me/like-posts", response_model=List[schemas.UserProfilePostResponse], deprecated=True, name="내가 좋아요 한 글 확인")
 async def get_user_info(

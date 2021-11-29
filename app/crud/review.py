@@ -122,7 +122,7 @@ class CRUDReview(CRUDBase[Review, ReviewCreate, ReviewUpdate]):
     @staticmethod
     def update_review(db: Session, *, db_obj: Review, obj_in: ReviewUpdate, current_user: User) -> Review:
         if db_obj.user_id != current_user.id:
-            raise HTTPException(401, "이 게시글을 수정할 권한이 없습니다.")
+            raise HTTPException(400, "이 게시글을 수정할 권한이 없습니다.")
         logger.info(f"리뷰 #{db_obj.id} 수정 요청 {jsonable_encoder(obj_in)}")
         obj_data = jsonable_encoder(db_obj)
         if isinstance(obj_in, dict):
@@ -146,7 +146,7 @@ class CRUDReview(CRUDBase[Review, ReviewCreate, ReviewUpdate]):
             db.refresh(db_obj)
             return db_obj
         else:
-            raise HTTPException(401, "이 게시글을 수정할 권한이 없습니다.")
+            raise HTTPException(400, "이 게시글을 수정할 권한이 없습니다.")
 
     def get_review_details(self, db: Session, review_id: int) -> Review:
         review_user = aliased(models.User)

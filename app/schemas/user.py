@@ -35,6 +35,7 @@ class SNSUserUpdate(UserBase):
 class OauthIn(BaseModel):
     sns_provider: SnsProviderType
     sns_access_token: str
+    fcm_token: Optional[str]
 
 
 class User(UserBase):

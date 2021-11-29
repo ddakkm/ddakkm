@@ -31,7 +31,7 @@ class CRUDComment(CRUDBase[Comment, CommentCreate, CommentUpdate]):
     def edit_comment(self, db: Session, id: int, obj_in: CommentUpdate, user_id: int) -> Comment:
         db_obj = db.query(self.model).filter(self.model.id == id).first()
         if db_obj is None or db_obj.user_id != user_id or db_obj.is_delete is True:
-            raise HTTPException(401, "수정 권한이 없는 댓글입니다.")
+            raise HTTPException(400, "수정 권한이 없는 댓글입니다.")
         db_obj.content = obj_in.content
         db.add(db_obj)
         db.commit()
@@ -80,7 +80,7 @@ class CRUDComment(CRUDBase[Comment, CommentCreate, CommentUpdate]):
             db.refresh(db_obj)
             return db_obj
         else:
-            raise HTTPException(401, "이 게시글을 수정할 권한이 없습니다.")
+            raise HTTPException(400, "이 게시글을 수정할 권한이 없습니다.")
 
     def get_review_id_by_comment_user_id(self, db: Session, user_id: int):
         result = db.query(self.model.review_id).\

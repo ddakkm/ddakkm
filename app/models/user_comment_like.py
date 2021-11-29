@@ -10,4 +10,4 @@ class UserCommentLike(Base):
 
     # Many to Many relation
     user = relationship('User', back_populates='user_comment_like')
-    comment = relationship('Comment', back_populates='user_comment_like')
+    comment = relationship('Comment', back_populates='user_comment_like', single_parent=True, cascade="all, delete-orphan")

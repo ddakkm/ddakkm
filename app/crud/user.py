@@ -1,8 +1,8 @@
-import random
+import logging
 from typing import Optional, List
 from datetime import datetime
 
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from fastapi.encoders import jsonable_encoder
 
 from app import crud, models, schemas
@@ -14,6 +14,8 @@ from app.schemas.keyword import UserKeywordCreate
 from app.schemas.survey import SurveyType, SurveyCreate, SurveyA, SurveyB, SurveyC
 from app.schemas.response import BaseResponse
 from app.utils.user import nickname_randomizer, character_image_randomizer, character_images
+
+logger = logging.getLogger('ddakkm_logger')
 
 
 class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
@@ -113,16 +115,24 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
         message = f"user from {user.sns_provider} | user_id: {user_id} \n is deleted" \
                   f"deleted comment : {len(user.comments)} || deleted reviews : {len(user.reviews)}"
         try:
-            db.query(models.Comment).filter(models.Comment.user_id == user_id).delete()
-            db.query(models.Review).filter(models.Review.user_id == user_id).delete()
-            db.query(models.SurveyA).filter(models.SurveyA.user_id == user_id).delete()
-            db.query(models.SurveyB).filter(models.SurveyB.user_id == user_id).delete()
-            db.query(models.SurveyC).filter(models.SurveyC.user_id == user_id).delete()
-            db.query(models.UserLike).filter(models.UserLike.user_id == user_id).delete()
+            # db.query(models.UserCommentLike).filter(models.UserCommentLike.user_id == user_id).delete()
+            # # db.query(models.UserCommentLike).filter(models.UserCommentLike.comment.user_id == user_id).delete()
+            # other_people_comment = db.query(models.UserCommentLike).join(models.Comment).options(joinedload(models.UserCommentLike.comment)).\
+            #     filter(models.Comment.user_id == user_id).delete()
+            # db.query(models.Comment).filter(models.Comment.user_id == user_id).delete()
+            # db.query(models.UserLike).filter(models.UserLike.user_id == user_id).delete()
+            # db.query(models.UserLike).filter(models.UserLike.review.user_id == user_id).delete()
+            # db.query(models.UserKeyword).filter(models.UserKeyword.user_id == user_id).delete()
+            # db.query(models.ReviewKeyword).filter(models.ReviewKeyword.review.user_id == user_id).delete()
+            # db.query(models.Review).filter(models.Review.user_id == user_id).delete()
+            # db.query(models.SurveyA).filter(models.SurveyA.user_id == user_id).delete()
+            # db.query(models.SurveyB).filter(models.SurveyB.user_id == user_id).delete()
+            # db.query(models.SurveyC).filter(models.SurveyC.user_id == user_id).delete()
             db.delete(user)
             db.commit()
             return BaseResponse(status="ok", object=user_id, message=message)
         except Exception as e:
+            logger.warning(f"Unknown Error Occured: {e}")
             return BaseResponse(status="failed", object=user_id, error=str(e))
 
     def soft_delete_by_user_id(self, db: Session, user_id: int) -> BaseResponse:

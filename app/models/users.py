@@ -45,18 +45,18 @@ class User(Base):
 
     # One to One
     # TODO survey_a 1:Many 로 수정
-    survey_a = relationship("SurveyA", back_populates="user", uselist=False, join_depth=1, lazy="joined")
-    survey_b = relationship("SurveyB", back_populates="user", uselist=False, join_depth=1, lazy="joined")
-    survey_c = relationship("SurveyC", back_populates="user", uselist=False, join_depth=1, lazy="joined")
+    survey_a = relationship("SurveyA", back_populates="user", uselist=False, join_depth=1, lazy="joined", cascade="all, delete-orphan")
+    survey_b = relationship("SurveyB", back_populates="user", uselist=False, join_depth=1, lazy="joined", cascade="all, delete-orphan")
+    survey_c = relationship("SurveyC", back_populates="user", uselist=False, join_depth=1, lazy="joined", cascade="all, delete-orphan")
 
     # One to Many
-    reviews = relationship("Review", back_populates="user", uselist=True)
-    comments = relationship("Comment", back_populates="user", uselist=True)
-    keywords = relationship("UserKeyword", back_populates="user", uselist=True)
+    reviews = relationship("Review", back_populates="user", uselist=True, cascade="all, delete-orphan")
+    comments = relationship("Comment", back_populates="user", uselist=True, cascade="all, delete-orphan")
+    keywords = relationship("UserKeyword", back_populates="user", uselist=True, cascade="all, delete-orphan")
 
     # Many to Many
-    user_comment_like = relationship("UserCommentLike", back_populates="user", join_depth=1)
-    user_like = relationship("UserLike", back_populates="user", join_depth=1)
+    user_comment_like = relationship("UserCommentLike", back_populates="user", join_depth=1, cascade="all, delete-orphan")
+    user_like = relationship("UserLike", back_populates="user", join_depth=1, cascade="all, delete-orphan")
 
 
 class UserKeyword(Base):
