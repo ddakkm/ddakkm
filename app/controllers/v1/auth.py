@@ -78,6 +78,17 @@ async def delete_user(
     return crud.user.soft_delete_by_user_id(db=db, user_id=current_user.id)
 
 
+@router.post("/logout", name="로그아웃", response_model=BaseResponse)
+async def logout(
+        db: Session = Depends(deps.get_db),
+        current_user: models.User = Depends(deps.get_current_user)
+) -> BaseResponse :
+    """
+    <h1> 회원을 로그아웃상태로 만들어 기존에 등록된 fcm_token을 제거합니다. </h1>
+    """
+    return crud.user.delete_fcm_token(db=db, user_id=current_user.id)
+
+
 @router.post("/sign-up/local", deprecated=True, name="id/pw로 회원가입 (개발테스트용)")
 async def create_user_local(
         *,

@@ -145,6 +145,16 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
         db.refresh(user)
         return BaseResponse(message=f"유저 #{user.id}가 비활성화 되었습니다.", object=user_id)
 
+    def delete_fcm_token(self, db: Session, user_id: int) -> BaseResponse:
+        user = db.query(self.model).filter(self.model.id == user_id).first()
+        now = datetime.now()
+        user.fcm_token = None
+        user.updated_at = now
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+        return BaseResponse(message=f"유저 #{user.id}가 로그아웃하였습니다. fcm_token을 삭제합니다.", object=user_id)
+
     @staticmethod
     def change_user_agree_keyword_push_status(db: Session, current_user: User) -> schemas.BaseResponse:
         if current_user.agree_keyword_push is False:
