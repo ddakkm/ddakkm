@@ -29,3 +29,16 @@ def get_test_user_token(client: TestClient) -> Dict[str, str]:
     a_token = response.get("access_token")
     headers = {"Authorization": f"Bearer {a_token}"}
     return headers
+
+
+@pytest.fixture(scope="module")
+def get_test_admin_user_tokne(client: TestClient) -> Dict[str, str]:
+    login_data = {
+        "username": settings.TEST_ADMIN_ID,
+        "password": settings.TEST_ADMIN_PW,
+    }
+    r = client.post(f"http://127.0.0.1:8000/v1/auth/login/local", data=login_data)
+    response = r.json()
+    a_token = response.get("access_token")
+    headers = {"Authorization": f"Bearer {a_token}"}
+    return headers

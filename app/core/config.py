@@ -31,6 +31,9 @@ class Settings(BaseSettings):
     TEST_USER_ID: str
     TEST_USER_PW: str
 
+    TEST_ADMIN_ID: str
+    TEST_ADMIN_PW: str
+
 # debug
 # _env_file=f'{os.getenv("app_env", "../app/env/local")}.env'
 
