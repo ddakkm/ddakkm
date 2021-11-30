@@ -25,7 +25,6 @@ class UserUpdate(UserBase):
 
 class SNSUserCreate(UserBase):
     agree_policy: bool = True
-    fcm_token: Optional[str] = None
 
 
 class SNSUserUpdate(UserBase):

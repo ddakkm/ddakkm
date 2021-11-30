@@ -55,7 +55,7 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
             character_image=character_image_randomizer(),
             agree_keyword_push=False,
             agree_activity_push=False,
-            fcm_token=obj_in.fcm_token,
+            fcm_token=oauth_in.fcm_token,
         )
         db.add(db_obj)
         db.commit()
