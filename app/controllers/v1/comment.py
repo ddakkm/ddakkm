@@ -25,6 +25,9 @@ async def get_comment_list(
         db: Session = Depends(deps.get_db),
         current_user: Union[models.User, None] = Depends(deps.get_current_user_optional)
 ) -> List[Comment]:
+    """
+    <h1> 리뷰 ID로 해당하는 모든 댓글을 가져옵니다. </h1>
+    """
     if current_user is None:
         current_user = models.User(id=0)
     comments = crud.comment.get_comments_by_review_id(db=db, review_id=review_id)
@@ -41,6 +44,9 @@ async def get_parent_comment_with_tree(
         db: Session = Depends(deps.get_db),
         current_user: Union[models.User, None] = Depends(deps.get_current_user_optional)
 ) -> Comment:
+    """
+    <h1> 댓글 ID로 모든 대댓글을 가져옵니다. </h1>
+    """
     if current_user is None:
         current_user = models.User(id=0)
     parent = crud.comment.get_comment(db=db, id=comment_id)

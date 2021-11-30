@@ -6,3 +6,4 @@ from .surveys import SurveyA, SurveyB, SurveyC
 from .user_like import UserLike
 from .user_comment_like import UserCommentLike
 from .users import User, UserKeyword, NicknameCounter, SnsProviderType, JoinSurveyCode
+from .qna import Qna

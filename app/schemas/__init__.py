@@ -9,3 +9,4 @@ from .page_response import PageResponse, PageResponseReviews
 from .report import ReportReason
 from .response import BaseResponse
 from .keyword import UserKeywordCreate, KeywordBase
+from .qna import QnaCreate, QnaUpdate, Qna

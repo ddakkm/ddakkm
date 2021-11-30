@@ -103,7 +103,7 @@ class CRUDReview(CRUDBase[Review, ReviewCreate, ReviewUpdate]):
             group_by(self.model.id)
 
         page = page_request.get("page", 1)
-        size = page_request.get("size", 10)
+        size = page_request.get("size", 20)
 
         return paginated_query(
             page_request,

@@ -66,7 +66,7 @@ async def get_reviews(
     """
     <h1> 메인 페이지를 위해 리뷰 리스트를 불러옵니다. </h1> </br>
     __로그인 액세스 토큰 없이(비회원도) 접근 가능한 API 입니다.__ </br> </br>
-    pagination이 구현되어있어, "page_meta"에 페이지 네이션에 대한 정보가 기록되어 옵니다.  </br>
+    pagination이 구현되어있어, "page_meta"에 페이지네이션에 대한 정보가 기록되어 옵니다.  </br>
     필터를 적용하였으며, 각 필터값에 해당하는 Query parameter를 안보내면 기본적으로 전체값을 리턴합니다. </br>
     로그인 한 유저 (Reqeust Header > Authorization에 Access Token을 넣어 요청하는 경우)는 "user_is_like"
     파라미터를 통해 내가 좋아요 한 리뷰인지의 여부를 알 수 있습니다. </br>
