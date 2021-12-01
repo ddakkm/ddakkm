@@ -18,6 +18,6 @@ log_config = {
     },
     "loggers": {
         "ddakkm_logger": {"handlers": ["default"], "level": "DEBUG"},
-        "sqlalchemy.engine": {"handlers": ["default"], "level": "INFO"}
+        # "sqlalchemy.engine": {"handlers": ["default"], "level": "INFO"}
     },
 }

@@ -8,6 +8,6 @@ database_uri = f"mysql://{settings.MYSQL_USER}:{settings.MYSQL_PASSWORD}@{settin
 print(database_uri)
 engine = create_engine(database_uri, pool_pre_ping=True, pool_size=15, max_overflow=0, encoding='utf8')
 
-logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
+# logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
