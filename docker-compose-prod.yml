@@ -1,0 +1,22 @@
+version: "3.7"
+
+services:
+  fastapi:
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    container_name: ddakkm_api
+    environment:
+      app_env: dev
+      LOG_LEVEL: warning
+      MAX_WORKERS: 2
+      WEB_CONCURRENCY: 1
+
+  nginx:
+    image: nginx
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    container_name: nginx
+    restart: always
+    ports:
+      - "10673:80"
