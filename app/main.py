@@ -16,8 +16,15 @@ from app.utils.user import open_nickname_csv, make_nickname_list, nicknames
 dictConfig(log_config)
 logger = logging.getLogger('ddakkm_logger')
 
+if settings.PROJECT_ENV == "prod":
+    openapi_url = None
+    docs_url = None
+else:
+    openapi_url = "/openapi.json"
+    docs_url = "/openapi.admin"
+
 app = FastAPI(
-    title=settings.PROJECT_NAME, openapi_url="/openapi.json", docs_url="/openapi.admin", redoc_url=None
+    title=settings.PROJECT_NAME, openapi_url=openapi_url, docs_url=docs_url, redoc_url=None
 )
 
 app.include_router(api_router, prefix=settings.API_V1_STR)

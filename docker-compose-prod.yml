@@ -7,7 +7,7 @@ services:
       dockerfile: ./Dockerfile
     container_name: ddakkm_api
     environment:
-      app_env: dev
+      app_env: prod
       LOG_LEVEL: warning
       MAX_WORKERS: 2
       WEB_CONCURRENCY: 1
