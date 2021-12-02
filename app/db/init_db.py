@@ -13,8 +13,8 @@ def init_db(db: Session) -> None:
     #     engine.execute(tbl.delete())
 
     # DB 다시 만들때 이부분 돌리기
-    Base.metadata.drop_all(bind=engine)
-    Base.metadata.create_all(bind=engine)
+    # Base.metadata.drop_all(bind=engine)
+    # Base.metadata.create_all(bind=engine)
 
     # user = crud.user.get_by_email(db, email=settings.FIRST_SUPERUSER)
     # if not user:
