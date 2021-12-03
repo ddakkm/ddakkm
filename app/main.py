@@ -1,4 +1,5 @@
 import logging
+import traceback
 from logging.config import dictConfig
 
 import uvicorn
@@ -45,6 +46,7 @@ async def catch_exceptions_middleware(request: Request, call_next):
         return await call_next(request)
     except Exception as e:
         logger.warning(f"Unknown Error Occured: {e}")
+        logger.warning(traceback.format_exc())
         error_response = jsonable_encoder(
             schemas.BaseResponse(status="error", object=0, error=str(e))
         )

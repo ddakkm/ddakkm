@@ -58,7 +58,11 @@ async def login_sns(
     """
     sns_id = get_sns_id(sns_access_token=oauth_in.sns_access_token, sns_provider=oauth_in.sns_provider)
     user = crud.user.get_by_sns_id(db=db, sns_id=sns_id)
-    crud.user.update(db=db, db_obj=user, obj_in={"fcm_token": oauth_in.fcm_token})
+
+    # fcm 토큰 유무에 따른 분기
+    if oauth_in.fcm_token:
+        crud.user.update(db=db, db_obj=user, obj_in={"fcm_token": oauth_in.fcm_token})
+
     if user is None:
         return schemas.LoginResponse(status="비회원", is_user=False, done_survey=False, access_token=None)
     response = generate_access_token_for_sns_user(user)
