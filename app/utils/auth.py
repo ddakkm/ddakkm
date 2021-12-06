@@ -50,3 +50,15 @@ def generate_access_token_for_sns_user(user: Optional[models.User]) -> schemas.l
             access_token=None,
             nickname=None
         )
+
+
+def unlink_sns(sns_provider: models.SnsProviderType, user_cid: str) -> str:
+    if sns_provider == models.SnsProviderType.KAKAO:
+        headers = {"Authorization": f"KakaoAK {settings.KAKAO_ADMIN_KEY}"}
+        body = {"target_id_type": "user_id", "target_id": int(user_cid)}
+        response = requests.post('https://kapi.kakao.com/v1/user/unlink', headers=headers, data=body)
+        if response.status_code != 200:
+            raise HTTPException(status_code=400, detail="알수없는 오류가 발생했습니다. 관리자에게 문의하세요.")
+        return str(response.json())
+    if sns_provider == models.SnsProviderType.NAVER:
+        return "TODO"

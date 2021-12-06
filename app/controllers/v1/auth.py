@@ -9,7 +9,7 @@ from app import crud, schemas, models
 from app.core import security
 from app.core.config import settings
 from app.controllers import deps
-from app.utils.auth import generate_access_token_for_sns_user, get_sns_id
+from app.utils.auth import generate_access_token_for_sns_user, get_sns_id, unlink_sns
 from app.schemas.response import BaseResponse
 
 router = APIRouter()
@@ -58,13 +58,13 @@ async def login_sns(
     """
     sns_id = get_sns_id(sns_access_token=oauth_in.sns_access_token, sns_provider=oauth_in.sns_provider)
     user = crud.user.get_by_sns_id(db=db, sns_id=sns_id)
+    if user is None:
+        return schemas.LoginResponse(status="비회원", is_user=False, done_survey=False, access_token=None)
 
     # fcm 토큰 유무에 따른 분기
     if oauth_in.fcm_token:
         crud.user.update(db=db, db_obj=user, obj_in={"fcm_token": oauth_in.fcm_token})
 
-    if user is None:
-        return schemas.LoginResponse(status="비회원", is_user=False, done_survey=False, access_token=None)
     response = generate_access_token_for_sns_user(user)
     response.done_survey = user.join_survey_code != "NONE"
     return response
@@ -79,6 +79,7 @@ async def delete_user(
     <h1> 회원의 상태를 비활성화 상태로 변경합니다.</h1>
     헤더에 로그인 토큰을 요청하면 해당하는 회원을 비활성화 상태로 변경합니다.
     """
+    sns_deactive = unlink_sns(sns_provider=current_user.sns_provider, user_cid=current_user.sns_id)
     return crud.user.soft_delete_by_user_id(db=db, user_id=current_user.id)
 
 

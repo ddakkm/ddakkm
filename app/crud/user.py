@@ -140,6 +140,7 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
         now = datetime.now()
         user.is_active = False
         user.updated_at = now
+        user.sns_id = None
         db.add(user)
         db.commit()
         db.refresh(user)

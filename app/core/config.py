@@ -35,6 +35,8 @@ class Settings(BaseSettings):
     TEST_ADMIN_ID: str
     TEST_ADMIN_PW: str
 
+    KAKAO_ADMIN_KEY: str
+
 # debug
 # _env_file=f'{os.getenv("app_env", "../app/env/local")}.env'
 
