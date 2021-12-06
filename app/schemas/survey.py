@@ -237,8 +237,14 @@ class SurveyBase(BaseModel):
             return v
 
 
+class ReviewDetail(BaseModel):
+    content: str
+    images: Optional[dict]
+    keywords: List[str]
+
+
 class SurveyCreate(SurveyBase):
-    pass
+    review_detail: ReviewDetail
 
 
 class SurveyUpdate(SurveyBase):
@@ -272,7 +278,16 @@ survey_details_example = {
                       "q4": [1, 2, 3, 4, 5, "속이요? 저는 다이어터인데요."],
                       "q5": [1]
                     }
-                  }
+                  },
+                  "review_detail": {
+                    "content": "가입설문 예시",
+                    "images": {
+                      "image1_url": "https://ddakkm-public.s3.ap-northeast-2.amazonaws.com/images/32c6f15b-3c50-59b3-8d3a-e98bfc223517.jpeg",
+                      "image2_url": "https://ddakkm-public.s3.ap-northeast-2.amazonaws.com/images/236920af-3da9-5fe6-a4ee-e5abbe8dffa5.heic",
+                      "image3_url": "https://ddakkm-public.s3.ap-northeast-2.amazonaws.com/images/1ae135a7-a58d-59b8-90a3-a6471abac265.heic"
+                      },
+                    "keywords": ["심근염/심낭염"]
+                    }
                 }
             },
             "B": {

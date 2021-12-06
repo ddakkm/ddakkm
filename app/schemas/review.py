@@ -3,7 +3,7 @@ from typing import Optional, List
 from pydantic import BaseModel
 
 from app.schemas.survey import VaccineType, VaccineRound, SurveyACreate, SurveyA
-from app.schemas.user import  Gender
+from app.schemas.user import Gender
 
 
 class ReviewParams(BaseModel):
