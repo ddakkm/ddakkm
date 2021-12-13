@@ -42,3 +42,8 @@ class Comment(CommentBase):
 
     class Config:
         orm_mode = True
+
+
+class CommentListResponse(BaseModel):
+    comment_count: int
+    comment_list: List[Comment]
