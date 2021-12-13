@@ -1,3 +1,4 @@
+import datetime
 from typing import List
 
 from sqlalchemy.orm import Session
@@ -19,14 +20,15 @@ def comment_model_to_dto(
         if comment.user.is_active is False:
             comment.nickname = "탈퇴한 회원"
             comment.content = "탈퇴한 작성자의 댓글입니다."
-
+    hours = 9
+    hours_added = datetime.timedelta(hours=hours)
     comment_dto = [
         CommentDto(
             id=comment.id,
             user_id=comment.user_id,
             nickname=comment.user.nickname,
             content=comment.content,
-            created_at=comment.created_at,
+            created_at=comment.created_at + hours_added,
             like_count=comment.like_count,
             user_is_like=comment.id in comment_ids_like_by_user,
             user_is_writer=comment.user.id == current_user_id,
@@ -35,7 +37,7 @@ def comment_model_to_dto(
                 user_id=nested_comment.user_id,
                 nickname=nested_comment.user.nickname,
                 content=nested_comment.content,
-                created_at=nested_comment.created_at,
+                created_at=nested_comment.created_at + hours_added,
                 like_count=nested_comment.like_count,
                 user_is_like=nested_comment.id in comment_ids_like_by_user,
                 user_is_writer=nested_comment.user.id == current_user_id,
