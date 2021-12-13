@@ -37,7 +37,7 @@ def comment_model_to_dto(
                 user_id=nested_comment.user_id,
                 nickname=nested_comment.user.nickname,
                 content=nested_comment.content,
-                created_at=nested_comment.created_at + hours_added,
+                created_at=nested_comment.created_at,
                 like_count=nested_comment.like_count,
                 user_is_like=nested_comment.id in comment_ids_like_by_user,
                 user_is_writer=nested_comment.user.id == current_user_id,
