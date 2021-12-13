@@ -28,6 +28,7 @@ async def create_qna(
     params = dict(obj_in)
     params["user_id"] = current_user.id
     qna = crud.qna.create(db=db, obj_in=params)
+    db.commit()
     return schemas.BaseResponse(object=qna.id, message=f"유저 ID: #{current_user.id}가 문의를 등록했습니다.")
 
 

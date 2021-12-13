@@ -86,9 +86,17 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
             survey_create_schema = models.SurveyA(
                 **jsonable_encoder(survey_in.survey_details), user_id=user_id, is_join_survey=True
             )
-            survey = crud.survey_a.create(db=db, obj_in=survey_create_schema)
-            review_obj = models.Review(user_id=user_id, survey_id=survey.id, content="")
-            crud.review.create(db=db, obj_in=review_obj)
+            survey = crud.survey_a.create_no_commit(db=db, obj_in=survey_create_schema)
+            # review 모델 생성
+            review_obj = models.Review(
+                user_id=user_id,
+                survey_id=survey.id,
+                content=survey_in.review_detail.content,
+                images=survey_in.review_detail.images
+            )
+            review = crud.review.create_no_commit(db=db, obj_in=review_obj)
+            # keyword 모델 생성
+            crud.review_keyword.bulk_create(db=db, review_id=review.id, keywords=survey_in.review_detail.keywords)
         # B 타입 설문지 -> 설문 내용을 작성 양식에 맞게 넣고, user_id 와 함께 DB에 입력
         elif survey_in.survey_type == SurveyType.B:
             survey_create_schema = SurveyB(**jsonable_encoder(survey_in.survey_details))
@@ -199,7 +207,7 @@ class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
     def create_keywords(db: Session, obj_in: UserKeywordCreate, user_id: int) -> List[UserKeyword]:
         db_obj = [UserKeyword(user_id=user_id, keyword=keyword) for keyword in obj_in.keywords]
         db.bulk_save_objects(db_obj)
-        db.commit()
+        db.flush()
         return db_obj
 
 

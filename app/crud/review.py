@@ -20,6 +20,13 @@ logger = logging.getLogger('ddakkm_logger')
 
 
 class CRUDReview(CRUDBase[Review, ReviewCreate, ReviewUpdate]):
+    def create_no_commit(self, db: Session, *, obj_in: ReviewCreate) -> Review:
+        obj_in_data = jsonable_encoder(obj_in)
+        db_obj = self.model(**obj_in_data)  # type: ignore
+        db.add(db_obj)
+        db.flush()
+        return db_obj
+
     def create_by_current_user(self, db: Session, *, obj_in: ReviewCreate, user_id: int):
         # 리뷰 작성을 위한 요청 바디에 포함되어있는 user_id로 서베이를 등록한다.
         survey_create_schema = SurveyA(**jsonable_encoder(obj_in.survey), user_id=user_id)
