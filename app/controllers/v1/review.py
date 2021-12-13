@@ -45,6 +45,7 @@ async def create_review(
     |survey_details > data > q2_1| 1~4 범위의 정수 | 발열 증상의 지속 기간에 대한 설문입니다. </br> "q2" 에서 1을 입력한 경우 이 파라미터는 비어있어야 합니다.|
     __자세한 내용은 하단 Schema 버튼을 눌러 참고해주세요.__
     """
+    logger.info(f"리뷰 작성 요청 {jsonable_encoder(review_in)}")
     review_obj = crud.review.create_by_current_user(db, obj_in=review_in, user_id=current_user.id)
     crud.review_keyword.bulk_create(db, review_id=review_obj.id, keywords=review_in.keywords)
     db.commit()

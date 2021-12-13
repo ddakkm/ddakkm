@@ -73,6 +73,7 @@ async def create_join_survey(
     </br>
     __이미 가입 설문을 마친 유저__가 설문을 할 경우 400 에러를 반환합니다.
     """
+    logger.info(f"리뷰 작성 요청 {jsonable_encoder(survey_in)}")
     if current_user.join_survey_code != models.JoinSurveyCode.NONE:
         raise HTTPException(400, "이미 회원가입 설문을 마친 회원입니다.")
     crud.user.create_join_survey(db=db, survey_in=survey_in, user_id=current_user.id)

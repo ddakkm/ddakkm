@@ -25,8 +25,6 @@ class CRUDReview(CRUDBase[Review, ReviewCreate, ReviewUpdate]):
         survey_create_schema = SurveyA(**jsonable_encoder(obj_in.survey), user_id=user_id)
         survey_id = survey_a.create(db=db, obj_in=survey_create_schema).id
 
-        logger.info(f"리뷰 작성 요청 {jsonable_encoder(obj_in)}")
-
         # 이미지 유무에 따라 입력값 결정
         if obj_in.images is None:
             db_obj = self.model(
