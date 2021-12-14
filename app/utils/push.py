@@ -8,7 +8,7 @@ from app.core.config import settings
 
 def send_push(title: str, body: str, tokens: str) -> None:
     headers = {
-        "Authorization": f"Bearer {settings.FCM_API_KEY}",
+        "Authorization": f"Key={settings.FCM_API_KEY}",
         "Content-Type": "application/json",
     }
     data = {
@@ -16,18 +16,18 @@ def send_push(title: str, body: str, tokens: str) -> None:
             "body": "asd",
             "title": "asd"
         },
-        "token": tokens,
+        "to": tokens,
     }
     test = {
         "message": {
-            "token": "3f5db3999e8b2105",
+            "registration_ids": ["3f5db3999e8b2105"],
             "notification": {
                 "body": "This is an FCM notification message!",
                 "title": "FCM Message"
             }
         }
     }
-    response = requests.post('https://fcm.googleapis.com/v1/projects/myproject-b5ae1/messages:send', data=json.dumps(test), headers=headers)
+    response = requests.post('https://fcm.googleapis.com/fcm/send', data=json.dumps(data), headers=headers)
     print(response.json())
 
 
