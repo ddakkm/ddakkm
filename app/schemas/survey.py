@@ -15,12 +15,12 @@ class SurveyType(str, Enum):
 
 
 class SurveyAData(BaseModel):
-    q1: List[Union[int, str]] = [1]
-    q2: List[int] = [1]
-    q2_1: List[Any] = []
-    q3: List[Union[int, str]] = [1]
-    q4: List[Union[int, str]] = [1]
-    q5: List[int] = [1]
+    q1: List[Union[int, str]]
+    q2: List[int]
+    q2_1: List[Any]
+    q3: List[Union[int, str]]
+    q4: List[Union[int, str]]
+    q5: List[int]
 
     @validator("q1")
     def limit_q1_range(cls, v):
@@ -39,8 +39,8 @@ class SurveyAData(BaseModel):
 
     @validator("q2")
     def limit_q2_range(cls, v):
-        if len(v) > 1:
-            raise ValueError(f"A 타입 설문지 q2 설문의 가능한 최대 답변 갯수는 1개 입니다."
+        if len(v) != 1:
+            raise ValueError(f"A 타입 설문지 q2 설문의 가능한 갯수는 1개 입니다."
                              f"| length of subjected list of q2: {len(v)}")
         if v[0] not in range(1, 7):
             raise ValueError(f"A 타입 설문지의 q2 설문의 번호 답변의 범위는 1번~6번 까지 입니다. | ValueError from {v}")
@@ -224,15 +224,15 @@ class SurveyBase(BaseModel):
 
     @validator("survey_details")
     def check_survey_form(cls, v, values):
-        if values.get("survey_type") == SurveyType.A:
+        if values.get("survey_type") == SurveyType.A:   # survey_type이 a이면 , SurveyACreate의 밸리데이션 통과시켜보기
             v = SurveyACreate(**jsonable_encoder(v))
             return v
 
-        if values.get("survey_type") == SurveyType.B:
+        if values.get("survey_type") == SurveyType.B:   # survey_type이 b이면 , SurveyBCreate의 밸리데이션 통과시켜보기
             v = SurveyBCreate(**jsonable_encoder(v))
             return v
 
-        if values.get("survey_type") == SurveyType.C:
+        if values.get("survey_type") == SurveyType.C:   # survey_type이 c이면 , SurveyCCreate의 밸리데이션 통과시켜보기
             v = SurveyCCreate(**jsonable_encoder(v))
             return v
 
@@ -244,7 +244,13 @@ class ReviewDetail(BaseModel):
 
 
 class SurveyCreate(SurveyBase):
-    review_detail: ReviewDetail
+    review_detail: Optional[ReviewDetail]
+
+    @validator("review_detail", always=True)
+    def check2(cls, v, values):
+        if values.get("survey_type") == SurveyType.A:
+            if v is None:
+                raise ValueError("A타입 설문의 경우, 리뷰 내용까지 필수로 작성되어야 합니다.")
 
 
 class SurveyUpdate(SurveyBase):
