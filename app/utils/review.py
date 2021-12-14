@@ -15,9 +15,12 @@ from app.models.reviews import Review
 def symtom_randomizer(symtom: dict) -> dict:
     candidates = dict(SurveyAData(q1=symtom.get("q1"),
                                   q2=symtom.get("q2"),
+                                  q2_1=symtom.get("q2_1"),
                                   q3=symtom.get("q3"),
                                   q4=symtom.get("q4"),
                                   q5=symtom.get("q5")))
+    # q2_1 은 랜덤 증상에 포함되지 않는다.
+    del(candidates["q2_1"])
 
     # 복수 선택 가능한 항목 중 문자열 답변만 있는 경우 랜덤 증상에 포함되지 않는다.
     for candidate in list(candidates.items()):
