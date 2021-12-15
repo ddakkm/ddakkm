@@ -4,6 +4,7 @@
 
 .idea
 *.key
+*.xlsx
 
 ### Python ###
 # Byte-compiled / optimized / DLL files
