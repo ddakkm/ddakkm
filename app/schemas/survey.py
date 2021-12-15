@@ -251,6 +251,7 @@ class SurveyCreate(SurveyBase):
         if values.get("survey_type") == SurveyType.A:
             if v is None:
                 raise ValueError("A타입 설문의 경우, 리뷰 내용까지 필수로 작성되어야 합니다.")
+            return v
 
 
 class SurveyUpdate(SurveyBase):
