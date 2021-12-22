@@ -20,6 +20,7 @@ def comment_model_to_dto(
         if comment.user.is_active is False:
             comment.nickname = "탈퇴한 회원"
             comment.content = "탈퇴한 작성자의 댓글입니다."
+    # 서버에서 시간 변환을 수행한다.
     hours = 9
     hours_added = datetime.timedelta(hours=hours)
     comment_dto = [

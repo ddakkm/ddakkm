@@ -12,6 +12,7 @@ from app.schemas.comment import Comment
 from app.utils.report import get_report_reason
 from app.utils.smpt import email_sender
 from app.utils.comment import comment_model_to_dto
+from app.utils.push import PushController, KeywordPushController
 
 router = APIRouter()
 
@@ -204,3 +205,14 @@ async def change_comment_like_status(
     <h2>_PS. 빠르게 만들기 위해 하나의 API로 좋아요/좋아요 취소를 모두 처리하도록 했습니다. 혹시 클라에서 분기가 불편해지거나 하면 말해주세요 그냥 2개로 나눌께요_</h2>
     """
     return crud.user_comment_like.change_user_comment_like_status(db, current_user=current_user, comment_id=comment_id)
+
+
+@router.post("/")
+async def test123(db: Session = Depends(deps.get_db), current_user: models.User = Depends(deps.get_current_user)):
+    pc = PushController(push_type="keyword", target_users=[current_user], title="", body="", db=db)
+    kc = KeywordPushController(keywords_list=["두드러기"], title="", body="", db=db)
+    kc.get_target_users_id_list()
+    print(kc.target_users)
+    kc.send_push()
+
+    # print("hello")
