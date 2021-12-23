@@ -38,7 +38,6 @@ def join(request_body: dict, env: str):
     else:
         url = "http://3.34.44.39/v1/auth/sign-up/local"
     r = requests.post(url, json=request_body)
-    print(r.status_code)
 
 
 def join_survey(request_body: dict, auth: dict, env: str) -> int:
@@ -161,7 +160,7 @@ if __name__ == "__main__":
         # 로그인 API 요청
         email = join_form.get("email")
         password = join_form.get("password")
-        access_token = login(password=password, email=email, env="prod")
+        access_token = login(password=password, email=email, env="dev")
 
         # 가입설문용 json body
         joinsurvey_form = JoinSurveyFormFactory(
@@ -177,7 +176,7 @@ if __name__ == "__main__":
         body = jsonable_encoder(joinsurvey_form)
 
         # 가입설문 API 요청
-        status_code = join_survey(request_body=body, auth=access_token, env="prod")
+        status_code = join_survey(request_body=body, auth=access_token, env="dev")
         if status_code != 200:
             print(f"{index} 번째 에러 발생")
         index += 1
