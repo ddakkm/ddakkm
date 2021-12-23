@@ -1,4 +1,5 @@
 import json
+import logging
 from typing import List, Optional
 
 import requests
@@ -7,30 +8,13 @@ from sqlalchemy.orm import Session, joinedload
 from app import models
 from app.core.config import settings
 
-
-def send_push(title: str, body: str, tokens: str) -> None:
-    headers = {
-        "Authorization": f"Key={settings.FCM_API_KEY}",
-        "Content-Type": "application/json",
-    }
-    data = {
-        "notification": {
-            "title": title,
-            "body": body,
-        },
-        "data": {
-        },
-        "registration_ids": tokens,
-    }
-    response = requests.post('https://fcm.googleapis.com/fcm/send', data=json.dumps(data), headers=headers)
-    print(response.json())
+logger = logging.getLogger('ddakkm_logger')
 
 
 # 여기선 유저 fcm token
 class PushController:
     def __init__(self,
                  push_type: str,
-                 target_users: List[models.User],
                  title: str,
                  body: str,
                  db: Session):
@@ -40,51 +24,73 @@ class PushController:
             self.type = "activity"
         else:
             raise Exception("지원하지 않는 메시지 타입입니다.")
-        self.target_users = self.__get_users_id_list(target_users)
+        self.target_users = []
+        self.target_users_fcm_token = []
         self.title = title
         self.body = body
         self.db = db
 
-    @classmethod
-    def __get_users_id_list(cls, target_users: List[models.User]) -> List[int]:
-        return [user.id for user in target_users]
-
-    def _get_users_fcm_token(self):
+    def __set_users_fcm_token(self):
         users = self.db.query(models.User).filter(models.User.id.in_(self.target_users)).all()
-        return [user.fcm_token for user in users]
+        self.target_users_fcm_token = [user.fcm_token for user in users]
 
-    def send_push(self):
-        print("여기서 푸시알림 발송 로직")
+    def send_push(self) -> bool:
+        self.__set_users_fcm_token()
+        headers = {
+            "Authorization": f"Key={settings.FCM_API_KEY}",
+            "Content-Type": "application/json",
+        }
+        data = {
+            "notification": {
+                "title": self.title,
+                "body": self.body,
+            },
+            "data": {
+            },
+            "registration_ids": self.target_users_fcm_token,
+        }
+        response = requests.post('https://fcm.googleapis.com/fcm/send', data=json.dumps(data), headers=headers)
+        if response.status_code != 200:
+            logger.warning(f"푸시 메시지 발송에 실패하였습니다. {response.json()}")
+            return False
+        else:
+            logger.info(f"푸시 메시지 발송에 성공했습니다. {response.json()}")
+            return True
 
 
 # TODO keywordlist 도 클래스 내부에서 찾아오는 걸로 변경 (keywordlist 속성을 review_id로 변경)
 class KeywordPushController(PushController):
-    def __init__(self, keywords_list: List[str], title: str, body: str, db: Session):
+    def __init__(self, review_id: int, title: str, body: str, db: Session):
         super().__init__(
             push_type="keyword",
-            target_users=[],
             title=title,
             body=body,
             db=db,
         )
-        self.keywords_list = keywords_list
+        self.review_id = review_id
+        self.keyword_list = []
 
     # 키워드 리스트를 좋아하는 유저 아이디를 클래스 속성에 할당
-    def get_target_users_id_list(self):
+    def __set_target_users_id_list(self):
         db = self.db
-        self.target_users = db.query(models.User).join(models.UserKeyword).options(joinedload(models.User.keywords))\
-            .filter(models.UserKeyword.keyword.in_(self.keywords_list)).all()
+        self.__set_keyword_list_from_review()
+        target_users = db.query(models.User).join(models.UserKeyword).options(joinedload(models.User.keywords))\
+            .filter(models.UserKeyword.keyword.in_(self.keyword_list)).all()
+        self.target_users = [user.id for user in target_users]
 
-    def get_keyword_list_from_review(self):
-        pass
+    # 입력된 리뷰 아이디에서 키워드 리스트를 불러옴
+    def __set_keyword_list_from_review(self):
+        db = self.db
+        review_keywords = db.query(models.ReviewKeyword).filter(models.ReviewKeyword.review_id == self.review_id).all()
+        self.keyword_list = [review.keyword for review in review_keywords]
 
     def send_push(self):
+        self.__set_target_users_id_list()
         super(KeywordPushController, self).send_push()
         # logging
-        print("여기서 로깅")
-
-
-
-if __name__ == "__main__":
-    send_push("a", "a",
-              "df7bIDt6TtOyw_S8xzPBqe:APA91bGmSRaxkyd1dp_gISJspjuS8xiiVpU3kbCx03k2qHKUB8jj3zzOouRLnZpqLmWLYvyf96NFsAhI8SvaIRLhwb1WoMSTiOh_AfT5LLkkvVa9TM8laK4QE-_OizTAvq2caT9e8gyj")
+        logger.info(
+            f"타겟키워드 : {self.keyword_list}, "
+            f"푸시 발송 유저 : {self.target_users}, "
+            f"푸시 제목 : {self.title}, "
+            f"푸시 내용 : {self.body}"
+        )

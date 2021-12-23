@@ -207,12 +207,12 @@ async def change_comment_like_status(
     return crud.user_comment_like.change_user_comment_like_status(db, current_user=current_user, comment_id=comment_id)
 
 
-@router.post("/")
-async def test123(db: Session = Depends(deps.get_db), current_user: models.User = Depends(deps.get_current_user)):
-    pc = PushController(push_type="keyword", target_users=[current_user], title="", body="", db=db)
-    kc = KeywordPushController(keywords_list=["두드러기"], title="", body="", db=db)
-    kc.get_target_users_id_list()
-    print(kc.target_users)
+@router.post("/", deprecated=True)
+async def test123(db: Session = Depends(deps.get_db), current_user: models.User = Depends(deps.get_current_user_optional)):
+    """
+    푸시 테스트용 api
+    """
+    kc = KeywordPushController(review_id=3, title="sdjfasndjf", body="", db=db)
     kc.send_push()
 
     # print("hello")

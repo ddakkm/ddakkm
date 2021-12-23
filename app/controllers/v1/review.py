@@ -14,6 +14,7 @@ from app.utils.smpt import email_sender
 from app.utils.review import symtom_randomizer, check_is_deleted
 from app.utils.storage import s3_client
 from app.utils.report import get_report_reason
+from app.utils.push import KeywordPushController
 from app import crud, schemas, models
 
 router = APIRouter()
@@ -53,6 +54,8 @@ async def create_review(
     response = schemas.BaseResponse(
         object=review_obj.id, message=f"리뷰 ID : #{review_obj.id}가 작성되었습니다."
     )
+    kc = KeywordPushController(review_id=review_obj.id, title="관심 키워드 글이 작성되었습니다.", body=review_obj.content, db=db)
+    kc.send_push()
     return response
 
 
