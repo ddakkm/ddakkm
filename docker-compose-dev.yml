@@ -11,6 +11,10 @@ services:
       LOG_LEVEL: warning
       MAX_WORKERS: 2
       WEB_CONCURRENCY: 1
+      REDISSERVER: redis://redis_server:6379
+      C_FORCE_ROOT: "true"
+    depends_on:
+      - redis_server
 
   nginx:
     image: nginx
@@ -20,3 +24,23 @@ services:
     restart: always
     ports:
       - "80:80"
+
+  worker:
+    build:
+      dockerfile: DockerfileCelery
+      context: .
+    environment:
+      REDISSERVER: redis://redis_server:6379
+      C_FORCE_ROOT: "true"
+    depends_on:
+      - redis_server
+  redis_server:
+    image: redis
+
+  flower:
+    image: mher/flower:0.9.7
+    command: [ "flower", "--broker=redis://redis_server:6379", "--port=5555" ]
+    ports:
+      - "5555:5555"
+    depends_on:
+      - redis_server

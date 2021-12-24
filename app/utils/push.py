@@ -44,6 +44,7 @@ class PushController:
             "notification": {
                 "title": self.title,
                 "body": self.body,
+                "click_action": "asd"
             },
             "data": {
             },

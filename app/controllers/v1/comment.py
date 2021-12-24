@@ -13,6 +13,7 @@ from app.utils.report import get_report_reason
 from app.utils.smpt import email_sender
 from app.utils.comment import comment_model_to_dto
 from app.utils.push import PushController, KeywordPushController
+from app.worker import celery
 
 router = APIRouter()
 
@@ -216,7 +217,9 @@ async def test123(db: Session = Depends(deps.get_db), current_user: models.User 
     """
     푸시 테스트용 api
     """
-    kc = KeywordPushController(review_id=3, title="sdjfasndjf", body="", db=db)
-    kc.send_push()
-
+    # kc = KeywordPushController(review_id=3, title="sdjfasndjf", body="", db=db)
+    # kc.send_push()
+    task_name = "hello.task"
+    task = celery.send_task(task_name, args=["asd"])
+    return dict(id=task.id, url='localhost:5000/check_task/{}'.format(task.id))
     # print("hello")
