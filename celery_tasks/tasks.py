@@ -28,10 +28,9 @@ def hello_world(self, name):
 
 
 @celery.task(name='send_push.task', bind=True)
-# def send_push(self, review_id: int, title: str, body: str, db: Session):
-def send_push(self):
+def send_push(self, review_id: int, title: str, body: str):
     db = SessionLocal()
-    kc = KeywordPushController(review_id=3, title="sdjfasndjf", body="", db=db)
+    kc = KeywordPushController(review_id=review_id, title=title, body=body, db=db)
     kc.send_push()
     self.update_state(state="PROGRESS")
     db.close()

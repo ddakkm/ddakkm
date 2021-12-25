@@ -77,9 +77,7 @@ class KeywordPushController(PushController):
         self.__set_keyword_list_from_review()
         target_users = db.query(models.User).join(models.UserKeyword).options(joinedload(models.User.keywords))\
             .filter(models.UserKeyword.keyword.in_(self.keyword_list)).all()
-        print(target_users)
         self.target_users = [user.id for user in target_users]
-        print(self.target_users)
 
     # 입력된 리뷰 아이디에서 키워드 리스트를 불러옴
     def __set_keyword_list_from_review(self):
