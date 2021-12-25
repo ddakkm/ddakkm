@@ -1,2 +1,6 @@
 celery==4.4.7
 redis==3.5.3
+SQLAlchemy==1.4.25
+sqlalchemy2-stubs==0.0.2a15
+requests==2.26.0
+PyMySQL==1.0.2

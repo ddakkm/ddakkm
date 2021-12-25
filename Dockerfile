@@ -6,5 +6,5 @@ RUN pip install -r ./requirements.txt
 
 
 
-COPY ./ ./
+COPY ./app ./app
 COPY ./app/env/*.env ./

@@ -31,6 +31,7 @@ services:
       context: .
     environment:
       REDISSERVER: redis://redis_server:6379
+      ENVIRONMENT: dev
       C_FORCE_ROOT: "true"
     depends_on:
       - redis_server

@@ -154,7 +154,7 @@ async def delete_comment(
     return response
 
 
-# TODO : 백그라운드 테스크 celery 로 변경
+# TODO : 백그라운드 테스크 celery_tasks 로 변경
 @router.post("/{comment_id}/report", name="댓글 신고", response_model=schemas.BaseResponse)
 async def report_comment(
         comment_id: int,
@@ -219,7 +219,8 @@ async def test123(db: Session = Depends(deps.get_db), current_user: models.User 
     """
     # kc = KeywordPushController(review_id=3, title="sdjfasndjf", body="", db=db)
     # kc.send_push()
-    task_name = "hello.task"
-    task = celery.send_task(task_name, args=["asd"])
+    task_name = "send_push.task"
+    task = celery.send_task(task_name)
+
     return dict(id=task.id, url='localhost:5000/check_task/{}'.format(task.id))
     # print("hello")

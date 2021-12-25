@@ -265,7 +265,7 @@ async def get_review_content(
     return schemas.ReviewContentResponse(content=review.content, images=review.images, keywords=keywords)
 
 
-# TODO : 백그라운드 테스크 celery 로 변경
+# TODO : 백그라운드 테스크 celery_tasks 로 변경
 @router.post("/{review_id}/report", name="리뷰 신고", response_model=schemas.BaseResponse)
 async def report_review(
         review_id: int,

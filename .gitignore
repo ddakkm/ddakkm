@@ -5,6 +5,7 @@
 .idea
 *.key
 *.xlsx
+celery_tasks/modules/const.py
 
 ### Python ###
 # Byte-compiled / optimized / DLL files

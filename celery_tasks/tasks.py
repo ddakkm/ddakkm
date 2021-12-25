@@ -1,12 +1,12 @@
 from time import sleep
 import traceback
 
-from celery import current_task
+from sqlalchemy.orm import Session
 from celery import states
-from celery.exceptions import Ignore
 
 from worker import celery
-
+from modules.push.push import KeywordPushController
+from modules.db.session import SessionLocal
 
 @celery.task(name='hello.task', bind=True)
 def hello_world(self, name):
@@ -25,3 +25,13 @@ def hello_world(self, name):
                 'exc_message': traceback.format_exc().split('\n')
             })
         raise ex
+
+
+@celery.task(name='send_push.task', bind=True)
+# def send_push(self, review_id: int, title: str, body: str, db: Session):
+def send_push(self):
+    db = SessionLocal()
+    kc = KeywordPushController(review_id=3, title="sdjfasndjf", body="", db=db)
+    kc.send_push()
+    self.update_state(state="PROGRESS")
+    db.close()
