@@ -14,16 +14,9 @@ logger = logging.getLogger('ddakkm_logger')
 # 여기선 유저 fcm token
 class PushController:
     def __init__(self,
-                 push_type: str,
                  title: str,
                  body: str,
                  db: Session):
-        if push_type == "keyword":
-            self.type = "keyword",
-        elif push_type == "activity":
-            self.type = "activity"
-        else:
-            raise Exception("지원하지 않는 메시지 타입입니다.")
         self.target_users = []
         self.target_users_fcm_token = []
         self.title = title
@@ -63,7 +56,6 @@ class PushController:
 class KeywordPushController(PushController):
     def __init__(self, review_id: int, title: str, body: str, db: Session):
         super().__init__(
-            push_type="keyword",
             title=title,
             body=body,
             db=db,

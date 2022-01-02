@@ -155,12 +155,12 @@ if __name__ == "__main__":
         # 회원의 가입용 json body
         join_form = JoinFormFactory(gender=gender, age=age).gen_dict()
         # 회원가입 API 요청
-        join(join_form, "dev")
+        join(join_form, "prod")
 
         # 로그인 API 요청
         email = join_form.get("email")
         password = join_form.get("password")
-        access_token = login(password=password, email=email, env="dev")
+        access_token = login(password=password, email=email, env="prod")
 
         # 가입설문용 json body
         joinsurvey_form = JoinSurveyFormFactory(
@@ -176,7 +176,7 @@ if __name__ == "__main__":
         body = jsonable_encoder(joinsurvey_form)
 
         # 가입설문 API 요청
-        status_code = join_survey(request_body=body, auth=access_token, env="dev")
+        status_code = join_survey(request_body=body, auth=access_token, env="prod")
         if status_code != 200:
             print(f"{index} 번째 에러 발생")
         index += 1

@@ -168,7 +168,7 @@ class CRUDReview(CRUDBase[Review, ReviewCreate, ReviewUpdate]):
         return review_obj
 
     def get_reviews_by_user_id(self, db: Session, user_id: int) -> List[Review]:
-        result = db.query(self.model).filter(self.model.user_id == user_id).order_by(self.model.created_at.desc()).all()
+        result = db.query(self.model).filter(self.model.user_id == user_id).filter(self.model.is_delete == False).order_by(self.model.created_at.desc()).all()
         return result
 
     def get_reviews_by_ids(self, db: Session, ids: List[int]) -> List[Review]:
