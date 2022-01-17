@@ -66,6 +66,7 @@ class ReviewResponse(ReviewBase):
     nickname: str
     vaccine_round: str
     vaccine_type: str
+    is_crossed: bool
     symptom: dict
     content: Optional[str]
     like_count: int

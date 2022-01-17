@@ -95,6 +95,7 @@ async def get_reviews(
         nickname=review.user.nickname,
         vaccine_round=review.survey.vaccine_round,
         vaccine_type=review.survey.vaccine_type,
+        is_crossed=review.survey.is_crossed,
         symptom=symtom_randomizer(review.survey.data),
         content=review.content,
         like_count=review.like_count,

@@ -71,6 +71,25 @@ class TestGetReviews:
 
         assert total == contents_count
 
+    def test_get_review_list_model(self):
+        response = client.get(self.host)
+        response_body = response.json()
+        if len(response_body.get("contents")) > 0:
+            example_content = response_body.get("contents")[0]
+            schemas.ReviewResponse(
+                id=example_content.get("id"),
+                user_id=example_content.get("user_id"),
+                nickname=example_content.get("nickname"),
+                vaccine_round=example_content.get("vaccine_round"),
+                vaccine_type=example_content.get("vaccine_type"),
+                is_crossed=example_content.get("is_crossed"),
+                symptom=example_content.get("symptom"),
+                content=example_content.get("content"),
+                like_count=example_content.get("like_count"),
+                comment_count=example_content.get("comment_count"),
+                user_is_like=example_content.get("user_is_like")
+            )
+
 
 class TestReivewBase:
     host = "v1/review"
@@ -95,7 +114,7 @@ class TestReivewBase:
             assert response.status_code == 404
 
     # 리뷰 모델에 맞게 리턴되는지 확인
-    def test_get_review_form(self):
+    def test_get_review_model(self):
         response = client.get(self.host+"/"+str(self.normal_review_ids[0]))
         response_body = response.json()
         schemas.Review(
