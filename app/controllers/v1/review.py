@@ -14,6 +14,7 @@ from app.utils.smpt import email_sender
 from app.utils.review import symtom_randomizer, check_is_deleted
 from app.utils.storage import s3_client
 from app.utils.report import get_report_reason
+from app.utils.user import calculate_birth_year_from_age, get_age_group
 from app.worker import celery
 from app import crud, schemas, models
 
@@ -196,6 +197,8 @@ async def get_review_details(
         content=review_obj.content,
         images=review_obj.images,
         user_id=review_obj.user_id,
+        user_gender=review_obj.user.gender,
+        user_age_group=get_age_group(calculate_birth_year_from_age(review_obj.user.age)),
         survey=review_obj.survey,
         is_writer=review_obj.user_id == current_user.id,
         nickname=review_obj.user.nickname,

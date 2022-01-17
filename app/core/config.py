@@ -5,7 +5,7 @@ from pydantic import AnyHttpUrl, BaseSettings
 
 
 class Settings(BaseSettings):
-    PROJECT_ENV: str
+    PROJECT_ENV: str = "local"
     API_V1_STR: str = "/v1"
     PROJECT_NAME: str
     BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = []

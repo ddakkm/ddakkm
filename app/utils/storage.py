@@ -1,7 +1,10 @@
+import typing
 import os
 import logging
 
+import pyheif
 import boto3
+from PIL import Image
 from botocore.exceptions import ClientError
 from botocore.client import BaseClient
 
@@ -13,6 +16,20 @@ s3_client = boto3.client(
     aws_access_key_id=settings.BOTO3_ACCESS_KEY,
     aws_secret_access_key=settings.BOTO3_SECRET_KEY
 )
+
+
+def convert_heic_to_png(file) -> Image:
+    heif_file = pyheif.read(file)
+    image = Image.frombytes(
+        heif_file.mode,
+        heif_file.size,
+        heif_file.data,
+        "raw",
+        heif_file.mode,
+        heif_file.stride,
+    )
+    image.format = "jpg"
+    return image
 
 
 def upload_file(file_name: str, bucket: str, object_name: str, s3_client: BaseClient=s3_client) -> bool:

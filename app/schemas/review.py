@@ -45,6 +45,8 @@ class Review(ReviewBase):
     survey: SurveyA
     is_writer: bool
     user_id: int
+    user_gender: Gender
+    user_age_group: str
     nickname: str
     # comments: List[Comment]
     keywords: Optional[List[str]]
