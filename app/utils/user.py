@@ -75,17 +75,17 @@ def calculate_birth_year_from_age(age: int) -> int:
 
 
 def get_age_group(age: int) -> str:
-    if age < 19:
-        return "1019"
-    elif 19 <= age <= 29:
+    if age <= 19:
+        return "0019"
+    elif 19 < age <= 29:
         return "2029"
-    elif 29 <= age <= 39:
+    elif 29 < age <= 39:
         return "3039"
-    elif 39 <= age <= 49:
+    elif 39 < age <= 49:
         return "4049"
-    elif 49 <= age <= 59:
+    elif 49 < age <= 59:
         return "5059"
-    elif 59 <= age:
+    elif 59 < age:
         return "6099"
 
 
